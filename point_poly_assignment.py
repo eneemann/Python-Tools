@@ -26,7 +26,6 @@ print('The script start time is {}'.format(readable_start))
 # Update variables below
 database = r'C:\E911\StGeorgeDispatch_TEST\Pt_in_Poly_TEST.gdb'
 points = os.path.join(database, "AddressPoints_TEST")
-#sgid_path = r'Database Connections\sde@SGID10@sgid.agrc.utah.gov.sde'
 sgid_path = r'C:\Users\eneemann\AppData\Roaming\Esri\ArcGISPro\Favorites\sgid.agrc.utah.gov.sde'
 
 add_path = os.path.join(sgid_path, 'SGID10.LOCATION.AddressSystemQuadrants')
@@ -57,7 +56,6 @@ def assign_poly_attr(pts, polygonDict):
     
     arcpy.env.workspace = os.path.dirname(pts)
     arcpy.env.overwriteOutput = True
-#    nearFLDS = ['IN_FID', 'NEAR_FID', 'NEAR_DIST']
     
     for lyr in polygonDict:
         # set path to polygon layer
