@@ -78,13 +78,13 @@ def assign_poly_attr(pts, polygonDict):
                 poly_OID_field.setdefault(row[1])
         
         # loop through polygon layer, if NEAR_FID key in poly_OID_field, set value to poly field name
-        with arcpy.da.SearchCursor(polyFC, ['OBJECTID', polygonDict[lyr]['poly_field']]) as polyCur:
+        with arcpy.da.SearchCursor(polyFC, ['OID@', polygonDict[lyr]['poly_field']]) as polyCur:
             for row in polyCur:
                 if row[0] in poly_OID_field:
                     poly_OID_field[row[0]] = row[1]
         
         # loop through points layer, using only OID and field to be updated
-        with arcpy.da.UpdateCursor(pts, ['OBJECTID', lyr]) as uCur:
+        with arcpy.da.UpdateCursor(pts, ['OID@', lyr]) as uCur:
             for urow in uCur:
                 try:
                     # search for corresponding polygon OID in polygon dictionay (polyDict)

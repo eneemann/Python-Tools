@@ -46,7 +46,6 @@ def assign_poly_attr(inner, polygonDict):
     
     arcpy.env.workspace = os.path.dirname(inner)
     db = os.path.dirname(inner)
-    print(f'db is: {db}')
     arcpy.env.overwriteOutput = True
     
     for lyr in polygonDict:
@@ -66,15 +65,14 @@ def assign_poly_attr(inner, polygonDict):
                 centroid_link[row[0]] = row[1]       # OID will return ORIG_FID
 
         # generate near table for each polygon layer
-        # neartable = 'in_memory\\near_table'
-        neartable = os.path.join(db, "near_table")
+        neartable = 'in_memory\\near_table'
         arcpy.analysis.GenerateNearTable(inner_centroids, polyFC, neartable, '1 Meters', 'NO_LOCATION', 'NO_ANGLE', 'CLOSEST')
 
         # replace near table's IN_FID with original inner polygon OID's
-        # ***this removes the reliance on having OIDs that were continuous, 1-n...gaps are now okay***
+        # *** this accounts for OID renumbering if there are gaps in OID sequence ***
         with arcpy.da.UpdateCursor(neartable, ['IN_FID']) as Cur:
             for row in Cur:
-                print(f"In near table, replacing {row[0]} with {centroid_link[row[0]]}.")
+                # print(f"In near table, replacing {row[0]} with {centroid_link[row[0]]}.")
                 row[0] = centroid_link[row[0]]       # IN_FID becomes the ORIG_FID
                 Cur.updateRow(row)
 
@@ -108,9 +106,9 @@ def assign_poly_attr(inner, polygonDict):
                     urow[1] = ''
                 uCur.updateRow(urow)
     
-        # Delete in memory near table
-        # arcpy.management.Delete(neartable)
-        # arcpy.management.Delete(inner_centroids)
+        # Delete in temporary table and feature class
+        arcpy.management.Delete(neartable)
+        arcpy.management.Delete(inner_centroids)
     
 ##########################
 #  Call Functions Below  #
