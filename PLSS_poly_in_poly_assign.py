@@ -4,14 +4,15 @@ Created on Fri Aug 16 11:34:29 2019
 
 @author: eneemann
 
-Script to assign attributes to points from point in polygon spatial query
-- Tailored to use SGID polygon layers for assignment
-- User must update:
-    points path
-    points field
-    polygon path
-    polygon field
-- function accepts path to points layer and dictionary with field/polygon info
+Script to assign attributes an inner polygon based on an outer polygon
+- Uses inner polygon centroid for a point-in-polygon spatial query
+- User must update the following variables:
+    database
+    inner_poly
+    inner_field
+    outer_path
+    outer_field
+- function accepts a path to inner polygon layer, and a dictionary that holds
 """
 
 import os
@@ -26,15 +27,16 @@ print('The script start time is {}'.format(readable_start))
 # Update variables below
 database = r'C:\Users\eneemann\Desktop\Neemann\PLSS Fabric in Pro Test\TestDataWaterRights.gdb'
 inner_poly = os.path.join(database, "T5SR1E_Q_QuarterSections_TEST")
+inner_field = 'FRSTDIVID'
 
-section_path = os.path.join(database, 'T5SR1E_Sections')
-section_field = 'FRSTDIVID'
+outer_path = os.path.join(database, 'T5SR1E_Sections')
+outer_field = 'FRSTDIVID'
 
 # create dictionary where key is name of field that needs updated in points layer
 # format is
         # 'pt_field_name': {'poly_path': path, 'poly_field': field}
 poly_dict = {
-        'FRSTDIVID': {'poly_path': section_path, 'poly_field': section_field}
+        inner_field: {'poly_path': outer_path, 'poly_field': outer_field}
         }
 
 ###############
