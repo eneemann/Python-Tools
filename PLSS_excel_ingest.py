@@ -89,22 +89,34 @@ with arcpy.da.UpdateCursor(out_table, fields) as uCur:
         uCur.updateRow(row)
 
 # XY Event to Point (Using DMS..WGS84???)
-spatial_ref = arcpy.SpatialReference(4269)
+spatial_ref = arcpy.SpatialReference(4269)      # NAD 1983
 out_pts = os.path.join(gdb_name, 'PLSS_new_pts_fc')
 x_field = 'new_LONG'
 y_field = 'new_LAT'
 arcpy.management.XYTableToPoint(out_table, out_pts, x_field, y_field, "", spatial_ref)
 
 # Project to state plane N ft
-# Project to state plane meters
-# Project to UTM 12 N
+pts_SP_ft = os.path.join(excel_dir, gdb_name, "PLSS_new_pts_SP_ft")
+sr_6626 = arcpy.SpatialReference(6626)       # NAD 1983 2011 StatePlane UT North FIPS 4301 (US ft)
+arcpy.management.Project(out_pts, pts_SP_ft, sr_6626)
 
+
+# Project to state plane meters
+pts_SP_m = os.path.join(excel_dir, gdb_name, "PLSS_new_pts_SP_m")
+sr_6620 = arcpy.SpatialReference(6620)       # NAD 1983 2011 StatePlane UT North FIPS 4301 (m)
+arcpy.management.Project(pts_SP_ft, pts_SP_m, sr_6620)
+
+# Project to UTM 12 N
+pts_UTM_12N = os.path.join(excel_dir, gdb_name, "PLSS_new_pts_UTM_12N_m")
+sr_26912 = arcpy.SpatialReference(26912)       # NAD 1983 UTM Zone 12N (m)
+arcpy.management.Project(pts_SP_m, pts_UTM_12N, sr_26912)
 
 
 
 ###############
 #  Functions  #
 ###############
+
 
     
 
