@@ -1,0 +1,120 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Sep  6 16:12:36 2019
+@author: eneemann
+
+Script to plot and project PLSS points from Excel spreadsheet
+"""
+
+import arcpy
+from arcpy import env
+import os
+import time
+#import pandas as pd
+#import numpy as np
+#from Levenshtein import StringMatcher as Lv
+#from matplotlib import pyplot as plt
+
+# Start timer and print start time in UTC
+start_time = time.time()
+readable_start = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
+print("The script start time is {}".format(readable_start))
+today = time.strftime("%Y%m%d")
+
+# Provide excel file info
+excel_dir = r'C:\Users\eneemann\Desktop\Neemann\PLSS Data'
+excel_file = r'Cache_AGRCPnts_Table_export_test.xls'
+excel_sheet = 'Cache_Table_export_test'
+os.chdir(excel_dir)
+spreadsheet = os.path.join(excel_dir, excel_file)
+
+# Create geodatabase
+gdb_name = 'Cache_PLSS_new_pts_' + today + '.gdb'
+arcpy.management.CreateFileGDB(excel_dir, gdb_name)
+
+### Outline
+# Excel to table
+now = time.strftime("%Y%m%d_%H%M%S")
+table_name = 'PLSS_new_pts_table'
+out_table = os.path.join(excel_dir, gdb_name, table_name)
+arcpy.conversion.ExcelToTable(spreadsheet, out_table, excel_sheet)
+
+# Add new long/lat fields
+arcpy.AddField_management(out_table, "new_LONG", "DOUBLE")
+arcpy.AddField_management(out_table, "new_LAT", "DOUBLE")
+
+# Function to convert DMS to DD
+def dms2dd(dms):
+    # receives dms as string input with special characters/spaces and returns float dd
+    print(dms)
+    # convert direction characters to - signs
+    if 'N' in dms:
+        dms.replace('N', '').strip()
+    elif 'S' in dms:
+        dms = '-' + dms.replace('S', '').strip()
+    elif 'E' in dms:
+        dms.replace('E', '').strip()
+    elif 'W' in dms:
+        dms = '-' + dms.replace('W', '').strip()
+        
+    # strip out special characters
+    if '°' in dms:
+        dms = dms.replace('°', '')
+    if "'" in dms:
+        dms = dms.replace("'", '')
+    if '"' in dms:
+        dms = dms.replace('"', '')
+    
+    print(dms)
+    # split into components
+    d = float(dms.split()[0])
+    m = float(dms.split()[1])
+    s = float(dms.split()[2])
+    
+    # calculate dd value
+    if '-' in dms:
+        dd = d - (m/60) -(s/3600)
+    else:
+        dd = d + (m/60) + (s/3600)
+    
+    return dd
+
+# Calculate new field value
+fields = ['LONG_NAD83', 'LAT_NAD83', 'new_LONG', 'new_LAT']
+with arcpy.da.UpdateCursor(out_table, fields) as uCur:
+    print("Looping through rows in FC ...")
+    for row in uCur:
+        row[2] = dms2dd(row[0])
+        row[3] = dms2dd(row[1])
+        uCur.updateRow(row)
+
+# XY Event to Point (Using DMS..WGS84???)
+spatial_ref = arcpy.SpatialReference(4269)
+out_pts = os.path.join(gdb_name, 'PLSS_new_pts_fc')
+x_field = 'new_LONG'
+y_field = 'new_LAT'
+arcpy.management.XYTableToPoint(out_table, out_pts, x_field, y_field, "", spatial_ref)
+
+# Project to state plane N ft
+# Project to state plane meters
+# Project to UTM 12 N
+
+
+
+
+###############
+#  Functions  #
+###############
+
+    
+
+##########################
+#  Call Functions Below  #
+##########################
+
+
+print("Script shutting down ...")
+# Stop timer and print end time in UTC
+readable_end = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
+print("The script end time is {}".format(readable_end))
+print("Time elapsed: {:.2f}s".format(time.time() - start_time))
