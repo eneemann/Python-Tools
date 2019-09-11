@@ -39,7 +39,6 @@ counties = os.path.join(SGID, "SGID10.BOUNDARIES.Counties")
 
 PLSS_list = []
 fields = ['TieSheet_Name']
-#where_SGID = "CountyID = '49005'"       # Cache County is FIPS code 49005
 with arcpy.da.SearchCursor(PLSS_pts, fields) as sCur:
     print("Looping through rows in {} ...".format(PLSS_pts))
 #with arcpy.da.SearchCursor("PLSS_lyr", fields) as sCur:
@@ -70,14 +69,11 @@ print(plss_df.head(5))
 plss_df.dropna(subset=['PDF'], inplace=True)
 plss_df.head()
 
-
 # apply function
 def in_pdf_dict(row):
     if row['PDF'] in pdf_dict:
-        row['Exists'] = 1
-        
+        row['Exists'] = 1     
     return row
-
 
 # loop through rows in df with apply function
 df = plss_df.apply(in_pdf_dict, axis=1)
@@ -85,17 +81,35 @@ df = plss_df.apply(in_pdf_dict, axis=1)
 # sum up 1s for total count
 print(f"Number of matching PDFs: {df.sum()['Exists']}")
 
+# Now check to remove the meander corners (part of PLSS label >= 800)
+test_df = plss_df
+def get_label(row):
+    if '.pdf' in row['PDF']:
+        return row['PDF'].split(".")[0].split("_")[1]
+    else:
+        return None
 
-###############
-#  Functions  #
-###############
+test_df['Label'] = test_df.apply(get_label, axis=1)
+test_df.dropna(subset=['Label'], inplace=True)
 
+final_df = test_df
+def parse_label(row):
+    first3 = int(row['Label'][0:3])
+    last3 = int(row['Label'][3:6])
+    if first3 >= 800 or last3 >= 800:
+        return 'no'
+    else:
+        return 'yes'
 
-    
+final_df['Keep'] = final_df.apply(parse_label, axis=1)
+final_df = test_df[final_df.Keep != 'no']
 
-##########################
-#  Call Functions Below  #
-##########################
+# sum up yes's for total count
+print(f"Number of matching PDFs (excluding meander points): {final_df.Keep.count()}")
+
+# Optionally export to csv if you need to explore the data
+#path = r'C:\Users\eneemann\Desktop\final_df.csv'
+#final_df.to_csv(path)
 
 
 print("Script shutting down ...")
