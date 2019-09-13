@@ -66,33 +66,35 @@ data_dict = {'PDF': PLSS_list, 'Exists': None}
 plss_df = pd.DataFrame(data = data_dict)
 print(plss_df.head(5))
 
-plss_df.dropna(subset=['PDF'], inplace=True)
+plss_df.dropna(subset=['PDF'], inplace=True)    # delete rows without a PDF listed
 plss_df.head()
 
-# apply function
+# function to check if PDF listed is actually in web share dictionary
 def in_pdf_dict(row):
     if row['PDF'] in pdf_dict:
         row['Exists'] = 1     
     return row
 
-# loop through rows in df with apply function
+# loop through rows in df with apply function, populate Exists column (1, or None)
 df = plss_df.apply(in_pdf_dict, axis=1)
 
 # sum up 1s for total count
 print(f"Number of matching PDFs: {df.sum()['Exists']}")
 
 # Now check to remove the meander corners (part of PLSS label >= 800)
-test_df = plss_df
+label_df = plss_df
 def get_label(row):
     if '.pdf' in row['PDF']:
         return row['PDF'].split(".")[0].split("_")[1]
     else:
         return None
 
-test_df['Label'] = test_df.apply(get_label, axis=1)
-test_df.dropna(subset=['Label'], inplace=True)
+# Populate label field, drop rows without a label (no PDF listed)
+label_df['Label'] = label_df.apply(get_label, axis=1)
+label_df.dropna(subset=['Label'], inplace=True)
 
-final_df = test_df
+# function to populate 'Keep' field based on label values
+keep_df = label_df
 def parse_label(row):
     first3 = int(row['Label'][0:3])
     last3 = int(row['Label'][3:6])
@@ -101,8 +103,13 @@ def parse_label(row):
     else:
         return 'yes'
 
-final_df['Keep'] = final_df.apply(parse_label, axis=1)
-final_df = test_df[final_df.Keep != 'no']
+# Populate 'Keep' field, drop rows == 'no', then drop rows where 'Exists' == None
+keep_df['Keep'] = keep_df.apply(parse_label, axis=1)
+keep_df = keep_df[keep_df.Keep != 'no']
+keep_df.dropna(subset=['Exists'], inplace=True)
+
+# loop through rows in df with apply function, populate Exists column (1, or None)
+final_df = keep_df.apply(in_pdf_dict, axis=1)
 
 # sum up yes's for total count
 print(f"Number of matching PDFs (excluding meander points): {final_df.Keep.count()}")
