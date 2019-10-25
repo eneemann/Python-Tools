@@ -21,28 +21,30 @@ today = time.strftime("%Y%m%d")
 # Read in PLSS points from SGID
 SGID = r"C:\Users\eneemann\AppData\Roaming\ESRI\ArcGISPro\Favorites\sgid.agrc.utah.gov.sde"
 PLSS_pts = os.path.join(SGID, "SGID10.CADASTRE.PLSSPoint_AGRC")
+#PLSS_pts = r'C:\Users\eneemann\Desktop\Neemann\PLSS Data\Test\Cache_PLSS_new_pts_20191025.gdb\PLSS_new_pts_UTM_12N_m'
 counties = os.path.join(SGID, "SGID10.BOUNDARIES.Counties")
 
 # Select only Cache County PLSS points and create layer
-#where_clause = "NAME = 'CACHE'" 
-## Need to make a layers
-#if arcpy.Exists("county_lyr"):
-#    arcpy.Delete_management("county_lyr")
-#arcpy.MakeFeatureLayer_management(counties, "county_lyr", where_clause)
-#if arcpy.Exists("PLSS_lyr"):
-#    arcpy.Delete_management("PLSS_lyr")
-#arcpy.MakeFeatureLayer_management(PLSS_pts, "PLSS_lyr")
+where_clause = "NAME = 'CACHE'" 
+# Need to make a layers
+if arcpy.Exists("county_lyr"):
+    arcpy.Delete_management("county_lyr")
+arcpy.MakeFeatureLayer_management(counties, "county_lyr", where_clause)
+if arcpy.Exists("PLSS_lyr"):
+    arcpy.Delete_management("PLSS_lyr")
+arcpy.MakeFeatureLayer_management(PLSS_pts, "PLSS_lyr")
 
 
 # Select all features within 5m of current St George FC
-#arcpy.SelectLayerByLocation_management("PLSS_lyr", "INTERSECT", "county_lyr")
+arcpy.SelectLayerByLocation_management("PLSS_lyr", "INTERSECT", "county_lyr")
 
 PLSS_list = []
 fields = ['TieSheet_Name']
-with arcpy.da.SearchCursor(PLSS_pts, fields) as sCur:
-    print("Looping through rows in {} ...".format(PLSS_pts))
-#with arcpy.da.SearchCursor("PLSS_lyr", fields) as sCur:
-#    print("Looping through rows in {} ...".format("PLSS_lyr"))
+#fields = ['TieSheet_N']
+#with arcpy.da.SearchCursor(PLSS_pts, fields) as sCur:
+#    print("Looping through rows in {} ...".format(PLSS_pts))
+with arcpy.da.SearchCursor("PLSS_lyr", fields) as sCur:
+    print("Looping through rows in {} ...".format("PLSS_lyr"))
     for row in sCur:
         PLSS_list.append(row[0])
 print(f"Total current PLSS points: {len(PLSS_list)}")
@@ -115,8 +117,8 @@ final_df = keep_df.apply(in_pdf_dict, axis=1)
 print(f"Number of matching PDFs (excluding meander points): {final_df.Keep.count()}")
 
 # Optionally export to csv if you need to explore the data
-#path = r'C:\Users\eneemann\Desktop\final_df.csv'
-#final_df.to_csv(path)
+path = r'C:\Users\eneemann\Desktop\final_df.csv'
+final_df.to_csv(path)
 
 
 print("Script shutting down ...")
