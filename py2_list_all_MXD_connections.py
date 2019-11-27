@@ -2,7 +2,7 @@
 """
 Created on Mon Nov 25 16:35:37 2019
 @author: eneemann
-Script to change SDE connections in MXDs
+Script to crawl directory to find all SDE connections in all MXDs
 
 ***Must use Python 2 Interpreter to use arcpy.mapping module and work with MXDs***
 """
