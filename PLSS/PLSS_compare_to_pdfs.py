@@ -20,9 +20,9 @@ today = time.strftime("%Y%m%d")
 
 # Read in PLSS points from SGID
 SGID = r"C:\Users\eneemann\AppData\Roaming\ESRI\ArcGISPro\Favorites\internal@SGID@internal.agrc.utah.gov.sde"
-PLSS_pts = os.path.join(SGID, "SGID10.CADASTRE.PLSSPoint_AGRC")
+PLSS_pts = os.path.join(SGID, "SGID.CADASTRE.PLSSPoint_AGRC")
 #PLSS_pts = r'C:\Users\eneemann\Desktop\Neemann\PLSS Data\Test\Cache_PLSS_new_pts_20191025.gdb\PLSS_new_pts_UTM_12N_m'
-counties = os.path.join(SGID, "SGID10.BOUNDARIES.Counties")
+counties = os.path.join(SGID, "SGID.BOUNDARIES.Counties")
 
 # Select only Cache County PLSS points and create layer
 where_clause = "NAME = 'CACHE'" 
