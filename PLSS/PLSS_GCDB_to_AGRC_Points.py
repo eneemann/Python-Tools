@@ -25,7 +25,8 @@ agrc_pts = os.path.join(SGID, "SGID.CADASTRE.PLSSPoint_AGRC")
 counties = os.path.join(SGID, "SGID.BOUNDARIES.Counties")
 
 test_db = r'C:\Users\eneemann\Desktop\Neemann\PLSS Data\PLSS Web App\TESTING.gdb'
-test_pts = os.path.join(test_db, 'TEST_AGRC_Points')
+test_pts = os.path.join(test_db, 'TEST_AGRC_Points_' + today)
+control_pts = os.path.join(test_db, 'Control_noSGID')
 
 gcdb_fields = arcpy.ListFields(gcdb_pts)
 print('GCDB Field Info:')
@@ -38,6 +39,8 @@ for f in agrc_fields:
 
 
 # Copy GDCB to Test AGRC Points
+if arcpy.Exists(test_pts):
+    arcpy.Delete_management(test_pts)
 arcpy.management.CopyFeatures(gcdb_pts, test_pts)
 
 # Alter current field names
@@ -135,14 +138,51 @@ with arcpy.da.UpdateCursor(test_pts, fields) as cursor:
         cursor.updateRow(row)
 print(f"Total count of updates to TieSheet_Name field: {update_count}")
     
+# Calculate Point_Category (spatial?) - Calculated, Tie Sheet, Monumente Record, Control
+# How determine monument record vs. tie sheet w/o knowing tie sheet contents
+# First pass - all = 'Calculated'
+print("First Pass calculating Point_Category field ...")
+update_count = 0
+fields = ['Point_Category']
+with arcpy.da.UpdateCursor(test_pts, fields) as cursor:
+    for row in cursor:
+        row[0] = 'Calculated'
+        update_count += 1
+        cursor.updateRow(row)
+print(f"Total count of updates to Point_Category: {update_count}")
 
-# Calculate Point_Category (spatial?)
+# Second pass - if TieSheet_Name: 'Tie Sheet'
+print("Second Pass calculating Point_Category field ...")
+where = "TieSheet_Name LIKE '%.pdf'"
+update_count = 0
+fields = ['Point_Category', 'TieSheet_Name']
+with arcpy.da.UpdateCursor(test_pts, fields) as cursor:
+    for row in cursor:
+        if '.pdf' in str(row[1]):
+            row[0] = 'Tie Sheet'
+            update_count += 1
+        cursor.updateRow(row)
+print(f"Total count of updates to Point_Category: {update_count}")
 
+# Third pass - Spatial selection, if w/i 2m of control: 'Control'
+print("Third Pass calculating Point_Category field ...") 
+# Need to make a layer
+arcpy.management.MakeFeatureLayer(test_pts, "test_pts_lyr")
+print("test_pts_lyr feature count: {}".format(arcpy.GetCount_management("test_pts_lyr")[0]))
 
-
-
-
-
+# Select all features within 2m of control points
+arcpy.management.SelectLayerByLocation("test_pts_lyr", "WITHIN_A_DISTANCE_GEODESIC", control_pts,
+                                                     "2 meters", "NEW_SELECTION")
+# Add note that these points are likely duplicates
+update_count = 0
+fields = ['Point_Category']
+with arcpy.da.UpdateCursor("test_pts_lyr", fields) as cursor:
+    for row in cursor:
+        row[0] = 'Control'
+        update_count += 1
+        cursor.updateRow(row)
+print(f"Total count of updates to Point_Category: {update_count}")
+        
 
 print("Script shutting down ...")
 # Stop timer and print end time in UTC
