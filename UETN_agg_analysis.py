@@ -172,7 +172,7 @@ spreadsheet = os.path.join(UETN_dir, excel_file)
 #
 ## send fields to geocoder, get x/y values back
 #def geocode(row):
-#    self = 'AGRC-C65620FC695351'     # insert correct API token here
+#    self = 'XXXXXXXXXX'     # insert correct API token here
 #    result = Geocoder(self).locate(row['street'], row['zone'],
 #                                         **{"acceptScore": 70, "spatialReference": 26912})
 #    print(result)
