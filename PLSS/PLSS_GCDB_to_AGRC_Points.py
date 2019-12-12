@@ -60,9 +60,9 @@ arcpy.management.AddField(test_pts, "PntLb_Fst3", "TEXT", "", "", 3)
 arcpy.management.AddField(test_pts, "PntLb_Lst3", "TEXT", "", "", 3)
 arcpy.management.AddField(test_pts, "Coord_Source", "TEXT", "", "", 150)
 arcpy.management.AddField(test_pts, "TieSheet_Name", "TEXT", "", "", 40)
+arcpy.management.AddField(test_pts, "DISPLAY_GRP", "TEXT", "", "", 20)
 #arcpy.management.AddField(test_pts, "LONG_NAD83", "TEXT", "", "", 25)
 #arcpy.management.AddField(test_pts, "LAT_NAD83", "TEXT", "", "", 25)
-#arcpy.management.AddField(test_pts, "DISPLAY_GRP", "TEXT", "", "", 20)
 #arcpy.management.AddField(test_pts, "PointLabel", "TEXT", "", "", 50)
 #arcpy.management.AddField(test_pts, "TNUM", "DOUBLE", "38", "8")
 #arcpy.management.AddField(test_pts, "RNUM", "DOUBLE", "38", "8")
@@ -70,6 +70,8 @@ arcpy.management.AddField(test_pts, "TieSheet_Name", "TEXT", "", "", 40)
 #arcpy.management.AddField(test_pts, "QNUM", "LONG", "10")
 print("Adding new Point_Category field ...")
 arcpy.management.AddField(test_pts, "Point_Category", "TEXT", "", "", 20)
+arcpy.management.AddField(test_pts, "isMonument", "TEXT", "", "", 3)
+arcpy.management.AddField(test_pts, "isControl", "TEXT", "", "", 3)
 
 # Calculate PntLb_Fst3 and PntLb_Lst3
 print("Calculating new ERROR fields ...")
@@ -129,12 +131,16 @@ for filename in dir_list:
 
 print("Calculating TieSheet_Name field ...")
 update_count = 0
-fields = ['POINTID', 'TieSheet_Name']
+fields = ['POINTID', 'TieSheet_Name', 'DISPLAY_GRP']
 with arcpy.da.UpdateCursor(test_pts, fields) as cursor:
     for row in cursor:
         if row[0] in pdf_dict:
             row[1] = row[0] + '.pdf'
+            row[2] = 'Zoomed out'
             update_count += 1
+#        else:
+#            row[2] = 'Zoomed in'
+#            update_count += 1
         cursor.updateRow(row)
 print(f"Total count of updates to TieSheet_Name field: {update_count}")
     
@@ -159,7 +165,7 @@ fields = ['Point_Category', 'TieSheet_Name']
 with arcpy.da.UpdateCursor(test_pts, fields) as cursor:
     for row in cursor:
         if '.pdf' in str(row[1]):
-            row[0] = 'Tie Sheet'
+            row[0] = 'Monument Record'
             update_count += 1
         cursor.updateRow(row)
 print(f"Total count of updates to Point_Category: {update_count}")
@@ -167,13 +173,15 @@ print(f"Total count of updates to Point_Category: {update_count}")
 # Third pass - Spatial selection, if w/i 2m of control: 'Control'
 print("Third Pass calculating Point_Category field ...") 
 # Need to make a layer
+if arcpy.Exists("test_pts_lyr"):
+    arcpy.Delete_management("test_pts_lyr")
 arcpy.management.MakeFeatureLayer(test_pts, "test_pts_lyr")
 print("test_pts_lyr feature count: {}".format(arcpy.GetCount_management("test_pts_lyr")[0]))
 
 # Select all features within 2m of control points
-arcpy.management.SelectLayerByLocation("test_pts_lyr", "WITHIN_A_DISTANCE_GEODESIC", control_pts,
+arcpy.management.SelectLayerByLocation("test_pts_lyr", "WITHIN_A_DISTANCE", control_pts,
                                                      "2 meters", "NEW_SELECTION")
-# Add note that these points are likely duplicates
+# Update the field
 update_count = 0
 fields = ['Point_Category']
 with arcpy.da.UpdateCursor("test_pts_lyr", fields) as cursor:
@@ -182,6 +190,51 @@ with arcpy.da.UpdateCursor("test_pts_lyr", fields) as cursor:
         update_count += 1
         cursor.updateRow(row)
 print(f"Total count of updates to Point_Category: {update_count}")
+
+# Calculate isMonument and isControl fields; allows symbology to be stacked
+print("Calculating isMonument and isControl fields ...")
+update_count = 0
+fields = ['isMonument', 'isControl', 'TieSheet_Name', 'Point_Category']
+with arcpy.da.UpdateCursor(test_pts, fields) as cursor:
+    for row in cursor:
+        # Use TieSheet_Name to assign isMonument field
+        if '.pdf' in str(row[2]):
+            row[0] = 'yes'
+            update_count += 1
+        else:
+            row[0] = 'no'
+            update_count += 1
+            
+        # Use Point_Category to assign isControl field
+        if row[3] == 'Control':
+            row[1] = 'yes'
+            update_count += 1
+        else:
+            row[1] = 'no'
+            update_count += 1
+            
+#        # Use Point_Category to assign both fields
+#        if row[3] == 'Calculated':
+#            row[0] = 'no'
+#            row[1] = 'no'
+#            update_count += 1
+        
+        cursor.updateRow(row)
+print(f"Total count of updates to isMonument and isControl: {update_count}")
+
+print("Updating DISPLAY_GRP field ...")
+update_count = 0
+fields = ['POINTID', 'TieSheet_Name', 'DISPLAY_GRP']
+with arcpy.da.UpdateCursor(test_pts, fields) as cursor:
+    for row in cursor:
+        if row[0] in pdf_dict:
+            row[2] = 'Zoomed out'
+            update_count += 1
+        else:
+            row[2] = 'Zoomed in'
+            update_count += 1
+        cursor.updateRow(row)
+print(f"Total count of updates to TieSheet_Name field: {update_count}")
         
 
 print("Script shutting down ...")
