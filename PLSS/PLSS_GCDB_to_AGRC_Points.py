@@ -7,10 +7,8 @@ Script to pull list of PLSS points and compare to PDFs on web server
 """
 
 import arcpy
-from arcpy import env
 import os
 import time
-import pandas as pd
 
 # Start timer and print start time in UTC
 start_time = time.time()
@@ -57,19 +55,11 @@ arcpy.management.AddField(test_pts, "ERRORY", "SHORT")
 arcpy.management.AddField(test_pts, "ERRORZ", "SHORT")
 
 print("Adding missing AGRC_Points fields ...")
-#arcpy.management.AddField(test_pts, "PntLb_Fst3", "TEXT", "", "", 3)
-#arcpy.management.AddField(test_pts, "PntLb_Lst3", "TEXT", "", "", 3)
 arcpy.management.AddField(test_pts, "Coord_Source", "TEXT", "", "", 150)
 arcpy.management.AddField(test_pts, "TieSheet_Name", "TEXT", "", "", 40)
 arcpy.management.AddField(test_pts, "DISPLAY_GRP", "TEXT", "", "", 20)
-#arcpy.management.AddField(test_pts, "LONG_NAD83", "TEXT", "", "", 25)
-#arcpy.management.AddField(test_pts, "LAT_NAD83", "TEXT", "", "", 25)
-#arcpy.management.AddField(test_pts, "PointLabel", "TEXT", "", "", 50)
-#arcpy.management.AddField(test_pts, "TNUM", "DOUBLE", "38", "8")
-#arcpy.management.AddField(test_pts, "RNUM", "DOUBLE", "38", "8")
-#arcpy.management.AddField(test_pts, "SNUM", "LONG", "10")
-#arcpy.management.AddField(test_pts, "QNUM", "LONG", "10")
-print("Adding new Point_Category field ...")
+
+print("Adding new Point_Category fields ...")
 arcpy.management.AddField(test_pts, "Point_Category", "TEXT", "", "", 20)
 arcpy.management.AddField(test_pts, "isMonument", "TEXT", "", "", 3)
 arcpy.management.AddField(test_pts, "isControl", "TEXT", "", "", 3)
@@ -104,21 +94,6 @@ print("Deleting ERRORX_orig, ERRORY_orig, and ERRORZ_orig fields ...")
 arcpy.management.DeleteField(test_pts, ["ERRORX_orig", "ERRORY_orig", "ERRORZ_orig"])
 
 # Calculate new fields
-## Calculate PntLb_Fst3 and PntLb_Lst3
-#print("Calculating PntLb_Fst3 and PntLb_Lst3 fields ...")
-#update_count = 0
-#fields = ['POINTLAB', 'PntLb_Fst3', 'PntLb_Lst3']
-#with arcpy.da.UpdateCursor(test_pts, fields) as cursor:
-#    for row in cursor:
-#        row[1] = row[0][0:3]
-#        row[2] = row[0][3:6]
-#        update_count += 1
-#        cursor.updateRow(row)
-#print(f"Total count of updates to PntLb_Fst3 and PntLb_Lst3: {update_count}")
-
-# Calculate Coord_Source (leave null)
-
-# Calculate TieSheet_Name (check against web share folder)
 # First, get list of pdfs from web server
 pdf_dir = r"Z:\TieSheets"
 os.chdir(pdf_dir)
@@ -213,13 +188,7 @@ with arcpy.da.UpdateCursor(test_pts, fields) as cursor:
         else:
             row[1] = 'no'
             update_count += 1
-            
-#        # Use Point_Category to assign both fields
-#        if row[3] == 'Calculated':
-#            row[0] = 'no'
-#            row[1] = 'no'
-#            update_count += 1
-        
+                    
         cursor.updateRow(row)
 print(f"Total count of updates to isMonument and isControl: {update_count}")
 
@@ -240,9 +209,6 @@ print(f"Total count of updates to TieSheet_Name field: {update_count}")
 # Update TieSheet_Name for counties with data on their website
 # Loop through county_list and perform update for each county
 for county in range(len(county_list)):
-#    if arcpy.Exists("county_lyr"):
-#        arcpy.Delete_management("county_lyr")
-#        time.sleep(5)
     # Select all features within county_lyr boundaries
     query = f"NAME = '{county_list[county]}'"
     print(f'County SQL Query:   {query}')
