@@ -23,6 +23,7 @@ SGID = r"C:\Users\eneemann\AppData\Roaming\ESRI\ArcGISPro\Favorites\internal@SGI
 gcdb_pts = os.path.join(SGID, "SGID.CADASTRE.PLSSPoint_GCDB")
 agrc_pts = os.path.join(SGID, "SGID.CADASTRE.PLSSPoint_AGRC")
 counties = os.path.join(SGID, "SGID.BOUNDARIES.Counties")
+county_list = ['DAVIS', 'DUCHESNE', 'SALT LAKE', 'UINTAH', 'UTAH', 'WASATCH', 'WEBER']
 
 test_db = r'C:\Users\eneemann\Desktop\Neemann\PLSS Data\PLSS Web App\TESTING.gdb'
 test_pts = os.path.join(test_db, 'TEST_AGRC_Points_' + today)
@@ -56,8 +57,8 @@ arcpy.management.AddField(test_pts, "ERRORY", "SHORT")
 arcpy.management.AddField(test_pts, "ERRORZ", "SHORT")
 
 print("Adding missing AGRC_Points fields ...")
-arcpy.management.AddField(test_pts, "PntLb_Fst3", "TEXT", "", "", 3)
-arcpy.management.AddField(test_pts, "PntLb_Lst3", "TEXT", "", "", 3)
+#arcpy.management.AddField(test_pts, "PntLb_Fst3", "TEXT", "", "", 3)
+#arcpy.management.AddField(test_pts, "PntLb_Lst3", "TEXT", "", "", 3)
 arcpy.management.AddField(test_pts, "Coord_Source", "TEXT", "", "", 150)
 arcpy.management.AddField(test_pts, "TieSheet_Name", "TEXT", "", "", 40)
 arcpy.management.AddField(test_pts, "DISPLAY_GRP", "TEXT", "", "", 20)
@@ -103,17 +104,17 @@ print("Deleting ERRORX_orig, ERRORY_orig, and ERRORZ_orig fields ...")
 arcpy.management.DeleteField(test_pts, ["ERRORX_orig", "ERRORY_orig", "ERRORZ_orig"])
 
 # Calculate new fields
-# Calculate PntLb_Fst3 and PntLb_Lst3
-print("Calculating PntLb_Fst3 and PntLb_Lst3 fields ...")
-update_count = 0
-fields = ['POINTLAB', 'PntLb_Fst3', 'PntLb_Lst3']
-with arcpy.da.UpdateCursor(test_pts, fields) as cursor:
-    for row in cursor:
-        row[1] = row[0][0:3]
-        row[2] = row[0][3:6]
-        update_count += 1
-        cursor.updateRow(row)
-print(f"Total count of updates to PntLb_Fst3 and PntLb_Lst3: {update_count}")
+## Calculate PntLb_Fst3 and PntLb_Lst3
+#print("Calculating PntLb_Fst3 and PntLb_Lst3 fields ...")
+#update_count = 0
+#fields = ['POINTLAB', 'PntLb_Fst3', 'PntLb_Lst3']
+#with arcpy.da.UpdateCursor(test_pts, fields) as cursor:
+#    for row in cursor:
+#        row[1] = row[0][0:3]
+#        row[2] = row[0][3:6]
+#        update_count += 1
+#        cursor.updateRow(row)
+#print(f"Total count of updates to PntLb_Fst3 and PntLb_Lst3: {update_count}")
 
 # Calculate Coord_Source (leave null)
 
@@ -236,6 +237,33 @@ with arcpy.da.UpdateCursor(test_pts, fields) as cursor:
         cursor.updateRow(row)
 print(f"Total count of updates to TieSheet_Name field: {update_count}")
         
+# Update TieSheet_Name for counties with data on their website
+# Loop through county_list and perform update for each county
+for county in range(len(county_list)):
+#    if arcpy.Exists("county_lyr"):
+#        arcpy.Delete_management("county_lyr")
+#        time.sleep(5)
+    # Select all features within county_lyr boundaries
+    query = f"NAME = '{county_list[county]}'"
+    print(f'County SQL Query:   {query}')
+    lyr_name = f"county_lyr_{county}"
+    arcpy.management.MakeFeatureLayer(counties, lyr_name, query)
+    print("county_lyr feature count: {}".format(arcpy.GetCount_management(lyr_name)[0]))
+    selection = arcpy.management.SelectLayerByLocation(test_pts, "INTERSECT", lyr_name,
+                                                         "", "NEW_SELECTION")
+    print(f"Calculating TieSheet_Name field for {county_list[county]} ...") 
+    update_count = 0
+    fields = ['TieSheet_Name']
+    with arcpy.da.UpdateCursor(selection, fields) as cursor:
+        for row in cursor:
+            if '.pdf' in str(row[0]):
+                continue
+            
+            row[0] = county_list[county]
+            update_count += 1
+            cursor.updateRow(row)
+    print(f"Total count of updates to TieSheet_Name field: {update_count}")
+
 
 print("Script shutting down ...")
 # Stop timer and print end time in UTC
