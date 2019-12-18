@@ -21,7 +21,7 @@ SGID = r"C:\Users\eneemann\AppData\Roaming\ESRI\ArcGISPro\Favorites\internal@SGI
 gcdb_pts = os.path.join(SGID, "SGID.CADASTRE.PLSSPoint_GCDB")
 agrc_pts = os.path.join(SGID, "SGID.CADASTRE.PLSSPoint_AGRC")
 counties = os.path.join(SGID, "SGID.BOUNDARIES.Counties")
-county_list = ['DAVIS', 'DUCHESNE', 'SALT LAKE', 'UINTAH', 'UTAH', 'WASATCH', 'WEBER']
+county_list = ['DAVIS', 'DUCHESNE', 'SALT LAKE', 'UINTAH', 'UTAH', 'WASATCH', 'WEBER', 'CACHE']
 
 test_db = r'C:\Users\eneemann\Desktop\Neemann\PLSS Data\PLSS Web App\TESTING.gdb'
 test_pts = os.path.join(test_db, 'TEST_AGRC_Points_' + today)
@@ -50,9 +50,13 @@ arcpy.management.AlterField(test_pts, "ERRORZ", "ERRORZ_orig")
 
 # Add new, needed fields
 print("Adding new ERROR fields with correct type ...")
-arcpy.management.AddField(test_pts, "ERRORX", "SHORT", field_alias="Error in X")
-arcpy.management.AddField(test_pts, "ERRORY", "SHORT", field_alias="Error in Y")
-arcpy.management.AddField(test_pts, "ERRORZ", "SHORT", field_alias="Error in Z")
+arcpy.management.AddField(test_pts, "ERRORX", "SHORT")
+arcpy.management.AddField(test_pts, "ERRORY", "SHORT")
+arcpy.management.AddField(test_pts, "ERRORZ", "SHORT")
+# Use the code below if you need to update the error aliases
+#arcpy.management.AddField(test_pts, "ERRORX", "SHORT", field_alias="Error in X")
+#arcpy.management.AddField(test_pts, "ERRORY", "SHORT", field_alias="Error in Y")
+#arcpy.management.AddField(test_pts, "ERRORZ", "SHORT", field_alias="Error in Z")
 
 print("Adding missing AGRC_Points fields ...")
 arcpy.management.AddField(test_pts, "Coord_Source", "TEXT", "", "", 150)
@@ -67,9 +71,9 @@ arcpy.management.AddField(test_pts, "isMonument", "TEXT", "", "", 3)
 arcpy.management.AddField(test_pts, "isControl", "TEXT", "", "", 3)
 arcpy.management.AddField(test_pts, "County", "TEXT", "", "", 20)
 
-# Correct field aliases
-print("Updating PLSSID field alias ...")
-arcpy.management.AlterField(test_pts, "PLSSID", "", "PLSS Area Identification")
+# Use code below if you need to correct the PLSS alias
+#print("Updating PLSSID field alias ...")
+#arcpy.management.AlterField(test_pts, "PLSSID", "", "PLSS Area Identification")
 
 # Calculate point geometry in NAD 83
 print("Calculating geometry fields ...")
@@ -255,13 +259,15 @@ for county in range(len(county_list)):
     with arcpy.da.UpdateCursor(selection, fields) as cursor:
         for row in cursor:
             row[1] = county_list[county]
+            row[0] = county_list[county]
             update_count += 1
-            if '.pdf' not in str(row[0]):
-                row[0] = county_list[county]
-                update_count_1 += 1
+            # Uncomment these lines if you want to preserve tie sheet names in counties with web pages
+#            if '.pdf' not in str(row[0]):
+#                row[0] = county_list[county]
+#                update_count_1 += 1
             cursor.updateRow(row)
     print(f"Total count of updates to County field: {update_count}")
-    print(f"Total count of updates to TieSheet_Name field: {update_count_1}")
+#    print(f"Total count of updates to TieSheet_Name field: {update_count_1}")
 
 
 print("Script shutting down ...")
