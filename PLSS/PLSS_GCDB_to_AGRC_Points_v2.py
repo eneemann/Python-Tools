@@ -50,9 +50,9 @@ arcpy.management.AlterField(test_pts, "ERRORZ", "ERRORZ_orig")
 
 # Add new, needed fields
 print("Adding new ERROR fields with correct type ...")
-arcpy.management.AddField(test_pts, "ERRORX", "SHORT")
-arcpy.management.AddField(test_pts, "ERRORY", "SHORT")
-arcpy.management.AddField(test_pts, "ERRORZ", "SHORT")
+arcpy.management.AddField(test_pts, "ERRORX", "SHORT", field_alias="Error in X")
+arcpy.management.AddField(test_pts, "ERRORY", "SHORT", field_alias="Error in Y")
+arcpy.management.AddField(test_pts, "ERRORZ", "SHORT", field_alias="Error in Z")
 
 print("Adding missing AGRC_Points fields ...")
 arcpy.management.AddField(test_pts, "Coord_Source", "TEXT", "", "", 150)
@@ -66,6 +66,10 @@ arcpy.management.AddField(test_pts, "Point_Category", "TEXT", "", "", 20)
 arcpy.management.AddField(test_pts, "isMonument", "TEXT", "", "", 3)
 arcpy.management.AddField(test_pts, "isControl", "TEXT", "", "", 3)
 arcpy.management.AddField(test_pts, "County", "TEXT", "", "", 20)
+
+# Correct field aliases
+print("Updating PLSSID field alias ...")
+arcpy.management.AlterField(test_pts, "PLSSID", "", "PLSS Area Identification")
 
 # Calculate point geometry in NAD 83
 print("Calculating geometry fields ...")
