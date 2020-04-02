@@ -33,7 +33,6 @@ env.overwriteOutput = True
 # Set up databases (SGID must be changed based on user's path)
 ng911_L = r"L:\agrc\data\ng911\NG911_boundary_work.gdb\EMS_Boundaries"
 ng911_emn = r"C:\Users\eneemann\Desktop\Neemann\NG911\NG911_project\NG911_project.gdb"
-work_dir = r"C:\Users\eneemann\Desktop\Neemann\NG911\NG911_project\EMS Boundary Descriptions\working_files"
 
 # Set up environments
 arcpy.env.workspace = ng911_emn
@@ -42,44 +41,25 @@ arcpy.env.qualifiedFieldNames = False
 
 # Set up feature classes and tables
 law_bounds = os.path.join(ng911_emn, 'NG911_law_bound_final_WGS84_20191017')
-out_name = os.path.join(ng911_emn, 'identity_test_' + today)
+out_name_identity = os.path.join(ng911_emn, 'identity_test_' + today)
 
-arcpy.analysis.Identity(law_bounds, sgid_munis, out_name, "NO_FID", None, "NO_RELATIONSHIPS")
+# This fails
+arcpy.analysis.Identity(law_bounds, sgid_munis, out_name_identity, "NO_FID", None, "NO_RELATIONSHIPS")
+
+# This works
+arcpy.management.CopyFeatures(sgid_munis, "muni_lyr")
+arcpy.analysis.Identity(law_bounds, "muni_lyr", out_name_identity, "NO_FID", None, "NO_RELATIONSHIPS")
 
 
+# This fails
+out_name_buff = os.path.join(ng911_emn, 'buffer_test_' + today)
+arcpy.analysis.Buffer(sgid_munis, out_name_buff, "50 Meters", "FULL", "ROUND", "ALL", "", "")
 
-
-
-
-
-
-# # Export roads from SGID into new FC based on intersection with city codes layer
-# # First make layer from relevant counties (Weber and Morgan)
-# export_roads = os.path.join(staging_db, "Roads_SGID_export_" + today)
-# where_SGID = "county_l IN ('49057', '49029') OR county_r IN ('49057', '49029')"      # Weber and Morgan Counties
-# arcpy.management.MakeFeatureLayer(sgid_roads, "sgid_roads_lyr", where_SGID)
-# arcpy.management.CopyFeatures("sgid_roads_lyr", "temp_roads")
-# print("Selecting SGID roads to export by intersection with city codes ...")
-# arcpy.management.SelectLayerByLocation("temp_roads", "INTERSECT", citycd)
-# arcpy.management.CopyFeatures("temp_roads", export_roads)
-
-# if arcpy.Exists("temp_roads"):
-#     arcpy.management.Delete("temp_roads")
-
-# # Create a 10m buffer around current streets data to use for selection
-# roads_buff = os.path.join(staging_db, "temp_roads_buffer")
-# if arcpy.Exists(roads_buff):
-#     arcpy.management.Delete(roads_buff)
-# print("Buffering {} ...".format(current_streets))
-# arcpy.analysis.Buffer(current_streets, roads_buff, "10 Meters", "FULL", "ROUND", "ALL")
-
-# # Select and export roads with centroids outside of the current streets buffer
-# arcpy.management.MakeFeatureLayer(export_roads, "sgid_export_lyr")
-# print("SGID roads layer feature count: {}".format(arcpy.management.GetCount("sgid_export_lyr")))
-# arcpy.management.SelectLayerByLocation("sgid_export_lyr", "HAVE_THEIR_CENTER_IN", roads_buff,
-#                                                      "", "", "INVERT")
-# outname = os.path.join(staging_db, "SGID_roads_to_review_" + today)
-# arcpy.management.CopyFeatures("sgid_export_lyr", outname)
+# This works
+out_name = os.path.join(ng911_emn, 'buffer_test_' + today)
+temp_features = r'in_memory\temp_features'
+arcpy.management.CopyFeatures(sgid_munis, temp_features)
+arcpy.analysis.Buffer(temp_features, out_name_buff, "50 Meters", "FULL", "ROUND", "ALL", "", "")
 
 print("Script shutting down ...")
 # Stop timer and print end time in UTC
