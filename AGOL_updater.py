@@ -17,7 +17,7 @@ import numpy as np
 import datetime as dt
 import pytz
 
-print(dt.datetime.now())
+# print(dt.datetime.now())
 
 
 # Start timer and print start time in UTC
