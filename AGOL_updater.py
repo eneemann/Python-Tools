@@ -144,20 +144,34 @@ day_df.head()
 day_df.sort_values('Day', inplace=True, ascending=True)
 day_df.head().to_string()
 
+# Create CSV for test data, update manually, read back in, overwrite working data
+day_df.to_csv(os.path.join(work_dir, 'by_day_testing.csv'))
+test_df = pd.read_csv(os.path.join(work_dir, 'by_day_testing.csv'))
+
+# CHANGE code below back to reading day_df to test real data
 
 # Split table into individual dfs by healt district
-hd_list = day_df.DISTNAME.unique()
+hd_list = test_df.DISTNAME.unique()
 hd_dict = {}
 for item in hd_list:
-    temp = day_df[day_df.DISTNAME == item]
+    temp = test_df[test_df.DISTNAME == item]
     hd_dict[item] = temp.reset_index()
+
 
 for key in hd_dict:
     for i in np.arange(1, hd_dict[key].shape[0]):
         hd_dict[key].at[i, 'COVID_Cases_Daily_Increase'] = hd_dict[key].iloc[i]['COVID_Cases_Utah_Resident'] - hd_dict[key].iloc[i-1]['COVID_Cases_Utah_Resident']
         hd_dict[key].at[i, 'COVID_Deaths_Daily_Increase'] = int(hd_dict[key].iloc[i]['COVID_Total_Deaths']) - int(hd_dict[key].iloc[i-1]['COVID_Total_Deaths'])
+        hd_dict[key].at[i, 'COVID_Total_Recoveries'] = int(hd_dict[key].iloc[i]['COVID_Cases_Utah_Resident']) - int(hd_dict[key].iloc[i]['COVID_Total_Deaths']) - ( int(hd_dict['Salt Lake County'].iloc[50]['COVID_Cases_Utah_Resident']) - int(hd_dict['Salt Lake County'].iloc[50-21]['COVID_Cases_Utah_Resident']) )
 
 
+
+hd_dict['Salt Lake County'].at[50, 'COVID_Total_Recoveries'] = int(hd_dict['Salt Lake County'].iloc[50]['COVID_Cases_Utah_Resident']) - int(hd_dict['Salt Lake County'].iloc[50]['COVID_Total_Deaths']) - ( int(hd_dict['Salt Lake County'].iloc[50]['COVID_Cases_Utah_Resident']) - int(hd_dict['Salt Lake County'].iloc[50-21]['COVID_Cases_Utah_Resident']) )
+                                                                                                                    
+                                                                                                                    
+# total recovered = total cases - total deaths - cases within the last 21 days
+
+# daily recovered = total cases last 21 days - total deaths last 21 days
     
 # COPY DAILY AND CUMULATIVE NUMBERS BACK TO MOST RECENT CASE COUNTS LAYER
 
@@ -168,3 +182,28 @@ print("Script shutting down ...")
 readable_end = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
 print("The script end time is {}".format(readable_end))
 print("Time elapsed: {:.2f}s".format(time.time() - start_time))
+
+
+
+
+# TESTING 
+# 4/25 estimate for recovered
+# total recovered = total cases - total deaths - cases older than 21 days
+# total recovered = total cases - total deaths - cases within the last 21 days
+# total recovered = total cases - total deaths - (total cases today - total cases 22 days ago)
+
+# First attempt (older than 21 days)
+# Using current 4/25 total cases, current 4/25 total deaths, and current 4/4 total cases
+r425 = 4140 - 45 - (4140 - 1592)
+print(r425)
+
+# Second attempt (older than 21 days)
+# Using current 4/25 total cases, old 4/25 total deaths, old 4/25 total cases, and current 4/4 total cases
+r425_v2 = 4140 - 43 - (4123 - 1592)     # gives web stie result (1566)
+print(r425_v2)
+
+# What website is showing
+# 4140 cumulative
+# 1566 recovered
+# 2529 active
+# 45 dead
