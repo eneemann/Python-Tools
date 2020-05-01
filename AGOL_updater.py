@@ -11,11 +11,9 @@ import os
 import time
 import getpass
 import arcpy
-from arcgis.gis import GIS
 import pandas as pd
 import numpy as np
 import datetime as dt
-import pytz
 
 print(dt.datetime.now())
 
@@ -40,11 +38,16 @@ counts_service = r'https://services1.arcgis.com/99lidPhWCzftIe9K/ArcGIS/rest/ser
 # TEST table
 counts_by_day = r'https://services1.arcgis.com/99lidPhWCzftIe9K/arcgis/rest/services/EMN_Cases_by_LHD_by_Day_TEST_v3/FeatureServer/0'
 
+# # Josh's LIVE layer (Utah_COVID19_Cases_by_Local_Health_Department)
+# counts_service = r'https://services6.arcgis.com/KaHXE9OkiB9e63uE/arcgis/rest/services/Utah_COVID19_Cases_by_Local_Health_Department/FeatureServer/0'
+# # Josh's LIVE table (Utah_COVID19_Case_Counts_by_LHD_by_Day)
+# counts_by_day = r'https://services6.arcgis.com/KaHXE9OkiB9e63uE/arcgis/rest/services/Utah_COVID19_Case_Counts_by_LHD_by_Day/FeatureServer/0'
 
+# Update this 'work_dir' variable with the folder you store the updated CSV in
 work_dir = r'C:/Users/eneemann/Desktop/Neemann/COVID19'
+
 updates = pd.read_csv(os.path.join(work_dir, 'COVID_Case_Counts_latest.csv'))
 updates.sort_values('Jurisdiction', inplace=True)
-
 
 # UPDATE LATEST CASE COUNTS LAYER FROM MOST RECENT CSV
 count = 0
@@ -121,12 +124,18 @@ keep_fields = ['DISTNAME', 'COVID_Cases_Utah_Resident', 'COVID_Cases_Non_Utah_Re
 if arcpy.Exists('in_memory\\temp_table'):
     print("Deleting 'in_memory\\temp_table' ...")
     arcpy.Delete_management('in_memory\\temp_table')
+    time.sleep(3)
 
 # Convert counts_by_day into pandas dataframe
 arcpy.conversion.TableToTable(counts_by_day, 'in_memory', 'temp_table')
 # temp_fields = [f.name for f in arcpy.ListFields('in_memory\\temp_table')]
 day_arr = arcpy.da.TableToNumPyArray('in_memory\\temp_table', keep_fields)
 day_df = pd.DataFrame(data=day_arr)
+
+# Clean up San Juan district name, if necessary
+for i in np.arange(day_df.shape[0]):
+    if 'San Juan' in day_df.iloc[i]['DISTNAME'].title():
+        day_df.at[i, 'DISTNAME'] = 'San Juan'
 
 # Convert string entries of 'None' to zeros ('0')
 mask = day_df.applymap(lambda x: x == 'None')
@@ -139,15 +148,15 @@ day_df.sort_values('Day', inplace=True, ascending=True)
 day_df.head().to_string()
 
 # Load test data
-test_df = pd.read_csv(os.path.join(work_dir, 'by_day_testing.csv'))
+# test_df = pd.read_csv(os.path.join(work_dir, 'by_day_testing.csv'))
 
 # Rename variables below to day_df after done testing
 
 # Split table into individual dfs by health district
-hd_list = test_df.DISTNAME.unique()
+hd_list = day_df.DISTNAME.unique()
 hd_dict = {}
 for item in hd_list:
-    temp = test_df[test_df.DISTNAME == item]
+    temp = day_df[day_df.DISTNAME == item]
     hd_dict[item] = temp.reset_index()
 
 for key in hd_dict:
@@ -164,28 +173,56 @@ for key in hd_dict:
 
 
 # UPDATE COUNTS BY DAY TABLE WITH NEW NUMBERS
-table_count = 0
-#                   0                    1                           2   
-table_fields = ['DISTNAME', 'COVID_Cases_Daily_Increase', 'COVID_Total_Recoveries',
-          #            3                         4                          5
-          'COVID_New_Daily_Recoveries', 'COVID_Total_Deaths', 'COVID_Deaths_Daily_Increase']
-with arcpy.da.UpdateCursor(counts_by_day, table_fields) as ucursor:
-    print("Looping through rows to make updates ...")
-    for row in ucursor:
-        temp_df = updates.loc[updates['Jurisdiction'] == row[0]]
-        print(temp_df.head())
-        row[1] = temp_df.iloc[0]['Cases']
-        row[2] = row[1]
-        row[3] = temp_df.iloc[0]['Hospitalizations']
-        row[4] = dt.datetime.now()
-        row[6] = (row[2]/row[5])*100000.
-        table_count += 1
-        ucursor.updateRow(row)
-print(f'Total count of COVID Case Count updates is: {table_count}')      
+# Should only need to run this once to make the calculations for all previous rows
+# start_time = time.time()
+# table_count = 0
+# #                   0         1                2                           3   
+# table_fields = ['DISTNAME', 'Day', 'COVID_Cases_Daily_Increase', 'COVID_Total_Recoveries',
+#           #            4                         5                          6
+#           'COVID_New_Daily_Recoveries', 'COVID_Total_Deaths', 'COVID_Deaths_Daily_Increase']
+# with arcpy.da.UpdateCursor(counts_by_day, table_fields) as ucursor:
+#     print("Looping through rows to make updates ...")
+#     for row in ucursor:
+#         print(row[0] + '   ' + str(row[1]))
+#         jurisdiction = row[0]
+#         if 'San Juan' in jurisdiction.title():
+#             jurisdiction = 'San Juan'
+#         # select row of jurisdiction's dataframe where date == date in hosted 'by day' table
+#         temp_df = hd_dict[jurisdiction].loc[hd_dict[jurisdiction]['Day'] == row[1]]
+#         # print(temp_df.head())
+#         row[2] = temp_df.iloc[0]['COVID_Cases_Daily_Increase']
+#         row[3] = temp_df.iloc[0]['COVID_Total_Recoveries']
+#         row[4] = temp_df.iloc[0]['COVID_New_Daily_Recoveries']
+#         row[5] = temp_df.iloc[0]['COVID_Total_Deaths']
+#         row[6] = temp_df.iloc[0]['COVID_Deaths_Daily_Increase']
+#         table_count += 1
+#         ucursor.updateRow(row)
+# print(f'Total count of COVID Counts By Day Table updates is: {table_count}')      
     
 # COPY DAILY AND CUMULATIVE NUMBERS BACK TO MOST RECENT CASE COUNTS LAYER
-
-
+# start_time = time.time()
+lhd_count = 0
+#                  0            1                     2                           3   
+lhd_fields = ['DISTNAME', 'Date_Updated', 'COVID_Cases_Daily_Increase', 'COVID_Total_Recoveries',
+          #            4                         5                          6
+          'COVID_New_Daily_Recoveries', 'COVID_Total_Deaths', 'COVID_Deaths_Daily_Increase']
+with arcpy.da.UpdateCursor(counts_service, lhd_fields) as ucursor:
+    print("Looping through rows to make updates ...")
+    for row in ucursor:
+        jurisdiction = row[0]
+        if 'San Juan' in jurisdiction.title():
+            jurisdiction = 'San Juan'
+        # select last row (most recent) of jurisdiction's dataframe and copy into counts_service layer
+        temp_row = hd_dict[jurisdiction].iloc[-1]
+        row[2] = temp_row.loc['COVID_Cases_Daily_Increase']
+        row[3] = temp_row.loc['COVID_Total_Recoveries']
+        row[4] = temp_row.loc['COVID_New_Daily_Recoveries']
+        row[5] = temp_row.loc['COVID_Total_Deaths']
+        row[6] = temp_row.loc['COVID_Deaths_Daily_Increase']
+        lhd_count += 1
+        ucursor.updateRow(row)
+print(f'Total count of COVID updates by local health district: {lhd_count}')      
+    
 
 print("Script shutting down ...")
 # Stop timer and print end time in UTC
@@ -210,5 +247,10 @@ r425_v2 = 4140 - 43 - (4123 - 1592)
 print(r425_v2)
 
 # What website is showing
-# 4140 cumulative
+# 4140 cumulative cases
 # 1566 recovered
+# 45 total dead
+# 2529 active cases
+
+r430 = 4828 - 46 - (4828 - 2093)
+print(r430)
