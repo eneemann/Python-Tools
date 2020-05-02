@@ -53,8 +53,8 @@ updates.sort_values('Jurisdiction', inplace=True)
 count = 0
 #             0                     1                      2                    3   
 fields = ['DISTNAME', 'COVID_Cases_Utah_Resident', 'COVID_Cases_Total', 'Hospitalizations',
-          #     4               5              6
-          'Date_Updated', 'Population', 'Cases_per_100k']
+          #     4               5              6                   7
+          'Date_Updated', 'Population', 'Cases_per_100k', 'COVID_Total_Deaths']
 with arcpy.da.UpdateCursor(counts_service, fields) as ucursor:
     print("Looping through rows to make updates ...")
     for row in ucursor:
@@ -65,6 +65,7 @@ with arcpy.da.UpdateCursor(counts_service, fields) as ucursor:
         row[3] = temp_df.iloc[0]['Hospitalizations']
         row[4] = dt.datetime.now()
         row[6] = (row[2]/row[5])*100000.
+        row[7] = temp_df.iloc[0]['Deaths']
         count += 1
         ucursor.updateRow(row)
 print(f'Total count of COVID Case Count updates is: {count}')
@@ -171,8 +172,35 @@ for key in hd_dict:
         # Calculate daily recovery increase
         hd_dict[key].at[i, 'COVID_New_Daily_Recoveries'] = int(hd_dict[key].iloc[i]['COVID_Total_Recoveries']) - int(hd_dict[key].iloc[i-1]['COVID_Total_Recoveries'])
 
+# UPDATE ***ONLY TODAY'S ROW*** IN COUNTS BY DAY TABLE WITH NEW NUMBERS
+# start_time = time.time()
+table_count = 0
+#                   0         1                2                           3   
+table_fields = ['DISTNAME', 'Day', 'COVID_Cases_Daily_Increase', 'COVID_Total_Recoveries',
+          #            4                         5                          6
+          'COVID_New_Daily_Recoveries', 'COVID_Total_Deaths', 'COVID_Deaths_Daily_Increase']
+with arcpy.da.UpdateCursor(counts_by_day, table_fields) as ucursor:
+    print("Looping through rows to make updates ...")
+    for row in ucursor:
+        if dt.datetime.now().date() == row[1].date():
+            print(row[0] + '   ' + str(row[1]))
+            jurisdiction = row[0]
+            if 'San Juan' in jurisdiction.title():
+                jurisdiction = 'San Juan'
+            # select row of jurisdiction's dataframe where date == date in hosted 'by day' table
+            temp_df = hd_dict[jurisdiction].loc[hd_dict[jurisdiction]['Day'] == row[1]]
+            # print(temp_df.head())
+            row[2] = temp_df.iloc[0]['COVID_Cases_Daily_Increase']
+            row[3] = temp_df.iloc[0]['COVID_Total_Recoveries']
+            row[4] = temp_df.iloc[0]['COVID_New_Daily_Recoveries']
+            row[5] = temp_df.iloc[0]['COVID_Total_Deaths']
+            row[6] = temp_df.iloc[0]['COVID_Deaths_Daily_Increase']
+            table_count += 1
+            ucursor.updateRow(row)
+print(f'Total count of COVID Counts By Day Table updates is: {table_count}') 
 
-# UPDATE COUNTS BY DAY TABLE WITH NEW NUMBERS
+
+# UPDATE ***ALL ROWS*** IN COUNTS BY DAY TABLE WITH NEW NUMBERS
 # Should only need to run this once to make the calculations for all previous rows
 # start_time = time.time()
 # table_count = 0
@@ -199,6 +227,8 @@ for key in hd_dict:
 #         ucursor.updateRow(row)
 # print(f'Total count of COVID Counts By Day Table updates is: {table_count}')      
     
+
+
 # COPY DAILY AND CUMULATIVE NUMBERS BACK TO MOST RECENT CASE COUNTS LAYER
 # start_time = time.time()
 lhd_count = 0
