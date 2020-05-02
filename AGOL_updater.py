@@ -15,7 +15,7 @@ import pandas as pd
 import numpy as np
 import datetime as dt
 
-print(dt.datetime.now())
+print(f'Current date and time: {dt.datetime.now()}')
 
 
 # Start timer and print start time in UTC
@@ -24,14 +24,22 @@ readable_start = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
 print("The script start time is {}".format(readable_start))
 
 
+# Set variables, get AGOL username and password
 portal_url = arcpy.GetActivePortalURL()
 print(portal_url)
 
 user = getpass.getpass(prompt='    Enter arcgis.com username:\n')
 pw = getpass.getpass(prompt='    Enter arcgis.com password:\n')
-# gis = GIS(portal_url, 'Erik.Neemann@UtahAGRC', pw)
 arcpy.SignInToPortal(portal_url, user, pw)
 del pw
+
+# Updated count numbers are copied from table at 'https://coronavirus.utah.gov/case-counts/'
+# CSV file with updates should be named 'COVID_Case_Counts_latest.csv'
+# Update this 'work_dir' variable with the folder you store the updated CSV in
+work_dir = r'C:/Users/eneemann/Desktop/Neemann/COVID19'
+updates = pd.read_csv(os.path.join(work_dir, 'COVID_Case_Counts_latest.csv'))
+updates.sort_values('Jurisdiction', inplace=True)
+
 
 # TEST layer
 counts_service = r'https://services1.arcgis.com/99lidPhWCzftIe9K/ArcGIS/rest/services/EMN_Cases_by_LHD_TEST_v3/FeatureServer/0'
@@ -43,13 +51,8 @@ counts_by_day = r'https://services1.arcgis.com/99lidPhWCzftIe9K/arcgis/rest/serv
 # # Josh's LIVE table (Utah_COVID19_Case_Counts_by_LHD_by_Day)
 # counts_by_day = r'https://services6.arcgis.com/KaHXE9OkiB9e63uE/arcgis/rest/services/Utah_COVID19_Case_Counts_by_LHD_by_Day/FeatureServer/0'
 
-# Update this 'work_dir' variable with the folder you store the updated CSV in
-work_dir = r'C:/Users/eneemann/Desktop/Neemann/COVID19'
 
-updates = pd.read_csv(os.path.join(work_dir, 'COVID_Case_Counts_latest.csv'))
-updates.sort_values('Jurisdiction', inplace=True)
-
-# UPDATE LATEST CASE COUNTS LAYER FROM MOST RECENT CSV
+# 1) UPDATE LATEST CASE COUNTS LAYER FROM MOST RECENT CSV
 count = 0
 #             0                     1                      2                    3   
 fields = ['DISTNAME', 'COVID_Cases_Utah_Resident', 'COVID_Cases_Total', 'Hospitalizations',
@@ -70,8 +73,8 @@ with arcpy.da.UpdateCursor(counts_service, fields) as ucursor:
         ucursor.updateRow(row)
 print(f'Total count of COVID Case Count updates is: {count}')
 
-# APPEND MOST RECENT CASE COUNTS TO COUNTS BY DAY TABLE
 
+# 2) APPEND MOST RECENT CASE COUNTS TO COUNTS BY DAY TABLE
 # Build Field Map for all fields from counts_service into counts_by_day
 fms = arcpy.FieldMappings()
 
@@ -109,27 +112,29 @@ for key in fm_dict:
     fm.outputField = output
     fms.addFieldMap(fm)
 
+# Get list of field names to compare them
 counts_fields = [f.name for f in arcpy.ListFields(counts_service)]
 by_day_fields = [f.name for f in arcpy.ListFields(counts_by_day)]
 
 print('Appending recent case counts to counts by day table ...')
 arcpy.management.Append(counts_service, counts_by_day, "NO_TEST", field_mapping=fms)
 
-# CALCULATE DAILY AND CUMULATIVE NUMBERS
+
+# 3) CALCULATE DAILY AND CUMULATIVE NUMBERS IN PANDAS DATAFRAME
 print(by_day_fields)
 keep_fields = ['DISTNAME', 'COVID_Cases_Utah_Resident', 'COVID_Cases_Non_Utah_Resident',
                'COVID_Cases_Total', 'Day', 'Hospitalizations', 'Population',
                'Cases_per_100k', 'COVID_Cases_Daily_Increase', 'COVID_Total_Recoveries',
                'COVID_New_Daily_Recoveries', 'COVID_Total_Deaths', 'COVID_Deaths_Daily_Increase']
 
+# Delete in-memory table that will be used (if it already exists)
 if arcpy.Exists('in_memory\\temp_table'):
     print("Deleting 'in_memory\\temp_table' ...")
     arcpy.Delete_management('in_memory\\temp_table')
     time.sleep(3)
 
-# Convert counts_by_day into pandas dataframe
+# Convert counts_by_day into pandas dataframe (table --> numpy array --> dataframe)
 arcpy.conversion.TableToTable(counts_by_day, 'in_memory', 'temp_table')
-# temp_fields = [f.name for f in arcpy.ListFields('in_memory\\temp_table')]
 day_arr = arcpy.da.TableToNumPyArray('in_memory\\temp_table', keep_fields)
 day_df = pd.DataFrame(data=day_arr)
 
@@ -144,22 +149,24 @@ cols = day_df.columns[(mask).any()]
 for col in day_df[cols]:
     day_df.loc[mask[col], col] = '0'
 
+# Sort data ascending so most recent dates are at the bottom (highest index)
 day_df.head()
 day_df.sort_values('Day', inplace=True, ascending=True)
 day_df.head().to_string()
 
-# Load test data
+# Load test data during the test process
+# Rename variables below back to day_df after done testing
 # test_df = pd.read_csv(os.path.join(work_dir, 'by_day_testing.csv'))
 
-# Rename variables below to day_df after done testing
-
-# Split table into individual dfs by health district
+# Split table into individual dataframes by health district
+# Create a dictionary to hold each dataframe, DISTNAME becomes the key
 hd_list = day_df.DISTNAME.unique()
 hd_dict = {}
 for item in hd_list:
     temp = day_df[day_df.DISTNAME == item]
     hd_dict[item] = temp.reset_index()
 
+# Calculate values for new fields by iterating through the dataframes
 for key in hd_dict:
     for i in np.arange(1, hd_dict[key].shape[0]):
         # Calculate daily case increase
@@ -172,7 +179,8 @@ for key in hd_dict:
         # Calculate daily recovery increase
         hd_dict[key].at[i, 'COVID_New_Daily_Recoveries'] = int(hd_dict[key].iloc[i]['COVID_Total_Recoveries']) - int(hd_dict[key].iloc[i-1]['COVID_Total_Recoveries'])
 
-# UPDATE ***ONLY TODAY'S ROW*** IN COUNTS BY DAY TABLE WITH NEW NUMBERS
+
+# 4a) UPDATE ***ONLY TODAY'S ROW*** IN COUNTS BY DAY TABLE WITH NEW NUMBERS
 # start_time = time.time()
 table_count = 0
 #                   0         1                2                           3   
@@ -200,7 +208,7 @@ with arcpy.da.UpdateCursor(counts_by_day, table_fields) as ucursor:
 print(f'Total count of COVID Counts By Day Table updates is: {table_count}') 
 
 
-# UPDATE ***ALL ROWS*** IN COUNTS BY DAY TABLE WITH NEW NUMBERS
+# 4b) UPDATE ***ALL ROWS*** IN COUNTS BY DAY TABLE WITH NEW NUMBERS
 # Should only need to run this once to make the calculations for all previous rows
 # start_time = time.time()
 # table_count = 0
@@ -229,7 +237,7 @@ print(f'Total count of COVID Counts By Day Table updates is: {table_count}')
     
 
 
-# COPY DAILY AND CUMULATIVE NUMBERS BACK TO MOST RECENT CASE COUNTS LAYER
+# 5) COPY DAILY AND CUMULATIVE NUMBERS BACK TO MOST RECENT CASE COUNTS LAYER
 # start_time = time.time()
 lhd_count = 0
 #                  0            1                     2                           3   
@@ -263,24 +271,24 @@ print("Time elapsed: {:.2f}s".format(time.time() - start_time))
 
 
 
-# TESTING
+# TESTING RECOVERY CALCULATION
 
 # 4/25 estimate for recovered
 # total recovered = total cases - total deaths - cases within the last 21 days
-# total recovered = total cases - total deaths - (total cases today - total cases 22 days ago)
-# First attempt (older than 21 days) - using total cases on 4/4
+# total recovered = total cases - total deaths - (total cases today - total cases 21 days ago)
+# First attempt - using total cases on 4/4
 r425 = 4140 - 45 - (4140 - 1592)
 print(r425)
 
-# Second attempt (older than 21 days) - using total cases on 4/3
+# Second attempt - using total cases on 4/3
 r425_v2 = 4140 - 43 - (4123 - 1592)
 print(r425_v2)
 
-# What website is showing
-# 4140 cumulative cases
+r425_v3 = 4138 - 41 - (4123 - 1592)
+print(r425_v3)
+
+# What website is now showing for 4/25
+# 4138 cumulative cases
 # 1566 recovered
 # 45 total dead
-# 2529 active cases
-
-r430 = 4828 - 46 - (4828 - 2093)
-print(r430)
+# 2527 active cases
