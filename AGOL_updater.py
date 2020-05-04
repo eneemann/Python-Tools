@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Apr 21 08:44:43 2020
-
 @author: eneemann
-
 21 Apr 2020: Created initial code to update AGOL layer (EMN).
 """
 
@@ -61,7 +59,10 @@ fields = ['DISTNAME', 'COVID_Cases_Utah_Resident', 'COVID_Cases_Total', 'Hospita
 with arcpy.da.UpdateCursor(counts_service, fields) as ucursor:
     print("Looping through rows to make updates ...")
     for row in ucursor:
-        temp_df = updates.loc[updates['Jurisdiction'] == row[0]]
+        jurisdiction = row[0]
+        if 'San Juan' in jurisdiction.title():
+            jurisdiction = 'San Juan'
+        temp_df = updates.loc[updates['Jurisdiction'] == jurisdiction]
         print(temp_df.head())
         row[1] = temp_df.iloc[0]['Cases']
         row[2] = row[1]
@@ -116,6 +117,7 @@ for key in fm_dict:
 counts_fields = [f.name for f in arcpy.ListFields(counts_service)]
 by_day_fields = [f.name for f in arcpy.ListFields(counts_by_day)]
 
+# Append the new data
 print('Appending recent case counts to counts by day table ...')
 arcpy.management.Append(counts_service, counts_by_day, "NO_TEST", field_mapping=fms)
 
