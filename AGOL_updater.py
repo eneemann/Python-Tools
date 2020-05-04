@@ -34,20 +34,20 @@ del pw
 # Updated count numbers are copied from table at 'https://coronavirus.utah.gov/case-counts/'
 # CSV file with updates should be named 'COVID_Case_Counts_latest.csv'
 # Update this 'work_dir' variable with the folder you store the updated CSV in
-work_dir = r'C:/Users/eneemann/Desktop/Neemann/COVID19'
+work_dir = r'C:\COVID19'
 updates = pd.read_csv(os.path.join(work_dir, 'COVID_Case_Counts_latest.csv'))
 updates.sort_values('Jurisdiction', inplace=True)
 
 
 # TEST layer
-counts_service = r'https://services1.arcgis.com/99lidPhWCzftIe9K/ArcGIS/rest/services/EMN_Cases_by_LHD_TEST_v3/FeatureServer/0'
+# counts_service = r'https://services1.arcgis.com/99lidPhWCzftIe9K/ArcGIS/rest/services/EMN_Cases_by_LHD_TEST_v3/FeatureServer/0'
 # TEST table
-counts_by_day = r'https://services1.arcgis.com/99lidPhWCzftIe9K/arcgis/rest/services/EMN_Cases_by_LHD_by_Day_TEST_v3/FeatureServer/0'
+# counts_by_day = r'https://services1.arcgis.com/99lidPhWCzftIe9K/arcgis/rest/services/EMN_Cases_by_LHD_by_Day_TEST_v3/FeatureServer/0'
 
 # # Josh's LIVE layer (Utah_COVID19_Cases_by_Local_Health_Department)
-# counts_service = r'https://services6.arcgis.com/KaHXE9OkiB9e63uE/arcgis/rest/services/Utah_COVID19_Cases_by_Local_Health_Department/FeatureServer/0'
+counts_service = r'https://services6.arcgis.com/KaHXE9OkiB9e63uE/arcgis/rest/services/Utah_COVID19_Cases_by_Local_Health_Department/FeatureServer/0'
 # # Josh's LIVE table (Utah_COVID19_Case_Counts_by_LHD_by_Day)
-# counts_by_day = r'https://services6.arcgis.com/KaHXE9OkiB9e63uE/arcgis/rest/services/Utah_COVID19_Case_Counts_by_LHD_by_Day/FeatureServer/0'
+counts_by_day = r'https://services6.arcgis.com/KaHXE9OkiB9e63uE/arcgis/rest/services/Utah_COVID19_Case_Counts_by_LHD_by_Day/FeatureServer/0'
 
 
 # 1) UPDATE LATEST CASE COUNTS LAYER FROM MOST RECENT CSV
@@ -175,7 +175,7 @@ for key in hd_dict:
         hd_dict[key].at[i, 'COVID_Cases_Daily_Increase'] = hd_dict[key].iloc[i]['COVID_Cases_Utah_Resident'] - hd_dict[key].iloc[i-1]['COVID_Cases_Utah_Resident']
         # Calculate daily death increase
         hd_dict[key].at[i, 'COVID_Deaths_Daily_Increase'] = int(hd_dict[key].iloc[i]['COVID_Total_Deaths']) - int(hd_dict[key].iloc[i-1]['COVID_Total_Deaths'])
-        # Calculate daily total recoveries
+        # Calculate daily total recoveries = total cases - total deaths - (total cases today - total cases 21 days ago)
         if i > 20:
             hd_dict[key].at[i, 'COVID_Total_Recoveries'] = int(hd_dict[key].iloc[i]['COVID_Cases_Utah_Resident']) - int(hd_dict[key].iloc[i]['COVID_Total_Deaths']) - ( int(hd_dict[key].iloc[i]['COVID_Cases_Utah_Resident']) - int(hd_dict[key].iloc[i-21]['COVID_Cases_Utah_Resident']) )
         # Calculate daily recovery increase
@@ -269,28 +269,3 @@ print("Script shutting down ...")
 readable_end = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
 print("The script end time is {}".format(readable_end))
 print("Time elapsed: {:.2f}s".format(time.time() - start_time))
-
-
-
-
-# TESTING RECOVERY CALCULATION
-
-# 4/25 estimate for recovered
-# total recovered = total cases - total deaths - cases within the last 21 days
-# total recovered = total cases - total deaths - (total cases today - total cases 21 days ago)
-# First attempt - using total cases on 4/4
-r425 = 4140 - 45 - (4140 - 1592)
-print(r425)
-
-# Second attempt - using total cases on 4/3
-r425_v2 = 4140 - 43 - (4123 - 1592)
-print(r425_v2)
-
-r425_v3 = 4138 - 41 - (4123 - 1592)
-print(r425_v3)
-
-# What website is now showing for 4/25
-# 4138 cumulative cases
-# 1566 recovered
-# 45 total dead
-# 2527 active cases
