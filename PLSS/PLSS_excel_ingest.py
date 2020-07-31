@@ -18,9 +18,10 @@ print("The script start time is {}".format(readable_start))
 today = time.strftime("%Y%m%d")
 
 # Provide excel file info
-excel_dir = r'C:\Users\eneemann\Desktop\Neemann\PLSS Data'
-excel_file = r'Cache_AGRCPnts_Table_export_test.xls'
-excel_sheet = 'Cache_Table_export_test'
+#excel_dir = r'C:\Users\eneemann\Desktop\Neemann\PLSS Data'
+excel_dir = r'C:\Users\eneemann\Desktop\Neemann\PLSS Data\Cache 2020 MRRC data'
+excel_file = r'2019 Cache County TieSheet Coordinates - EMN.xlsx'
+excel_sheet = 'TieSheet_Deliverables_spreadshe'
 new_dir = r'C:\Users\eneemann\Desktop\Neemann\PLSS Data\Test'
 os.chdir(excel_dir)
 spreadsheet = os.path.join(excel_dir, excel_file)
@@ -59,11 +60,11 @@ def dms2dd(dms):
         
     # strip out special characters
     if '°' in dms:
-        dms = dms.replace('°', '')
+        dms = dms.replace('°', ' ')
     if "'" in dms:
-        dms = dms.replace("'", '')
+        dms = dms.replace("'", ' ')
     if '"' in dms:
-        dms = dms.replace('"', '')
+        dms = dms.replace('"', ' ')
     
 #    print(dms)
     # split into components
