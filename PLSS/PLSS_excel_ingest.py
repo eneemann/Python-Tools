@@ -19,15 +19,15 @@ today = time.strftime("%Y%m%d")
 
 # Provide excel file info
 #excel_dir = r'C:\Users\eneemann\Desktop\Neemann\PLSS Data'
-excel_dir = r'C:\Users\eneemann\Desktop\Neemann\PLSS Data\Cache 2020 MRRC data'
-excel_file = r'2019 Cache County TieSheet Coordinates - EMN.xlsx'
-excel_sheet = 'TieSheet_Deliverables_spreadshe'
+excel_dir = r'C:\Users\eneemann\Desktop\Neemann\PLSS Data\PLSS Fabric Work\Daggett'
+excel_file = r'Daggett_points_combined_minimal.xlsx'
+excel_sheet = 'Control Sheet Table Data'
 new_dir = r'C:\Users\eneemann\Desktop\Neemann\PLSS Data\Test'
 os.chdir(excel_dir)
 spreadsheet = os.path.join(excel_dir, excel_file)
 
 # Create geodatabase
-gdb_name = 'Cache_PLSS_new_pts_' + today + '.gdb'
+gdb_name = 'Daggett_PLSS_new_pts_' + today + '.gdb'
 gdb = os.path.join(new_dir, gdb_name)
 arcpy.management.CreateFileGDB(new_dir, gdb_name)
 env.workspace = gdb
@@ -82,7 +82,7 @@ def dms2dd(dms):
     return dd
 
 # Calculate new field value
-fields = ['LONG_NAD83', 'LAT_NAD83', 'new_LONG', 'new_LAT']
+fields = ['LONGITUDE', 'LATITUDE', 'new_LONG', 'new_LAT']
 with arcpy.da.UpdateCursor(out_table, fields) as uCur:
     print("Looping through rows in FC ...")
     for row in uCur:
