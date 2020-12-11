@@ -30,13 +30,14 @@ old_4 = r"Database Connections\sde@SGID10@sgid.agrc.utah.gov.sde"
 old_5 = r"C:\Users\DBuell\AppData\Roaming\ESRI\Desktop10.0\ArcCatalog\DC_ AGRC@SGID10@ITDB104SP.DTS.UTAH.GOV.sde"
 old_6 = r"C:\Users\dbuell\AppData\Roaming\ESRI\Desktop10.1\ArcCatalog\DC_AGRC@SGID10@gdb10.agrc.utah.gov.sde"
 old_7 = r"Database Connections\sgid.agrc.utah.gov.sde"
+old_8 = r"C:\Users\eneemann\AppData\Roaming\ESRI\ArcGISPro\Favorites\sgid.agrc.utah.gov.sde"
 
 # Combine past connections into a list; will use later for
-old_list = [old_1, old_2, old_3, old_4, old_5, old_6, old_7]
+old_list = [old_1, old_2, old_3, old_4, old_5, old_6, old_7, old_8]
 
 # Create variables for new database connection and root directory to crawl
 new_SGID_internal = r"Database Connections\internal@SGID@internal.agrc.utah.gov.sde"
-root_dir = r'C:\E911'
+root_dir = r'C:\E911\San Juan'
 
 ###############
 #  Functions  #
