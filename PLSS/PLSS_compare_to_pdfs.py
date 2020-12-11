@@ -24,8 +24,8 @@ PLSS_pts = os.path.join(SGID, "SGID.CADASTRE.PLSSPoint_AGRC")
 #PLSS_pts = r'C:\Users\eneemann\Desktop\Neemann\PLSS Data\Test\Cache_PLSS_new_pts_20191025.gdb\PLSS_new_pts_UTM_12N_m'
 counties = os.path.join(SGID, "SGID.BOUNDARIES.Counties")
 
-# Select only Cache County PLSS points and create layer
-where_clause = "NAME = 'CACHE'" 
+# Select only County PLSS points and create layer
+where_clause = "NAME = 'WASATCH'" 
 # Need to make a layers
 if arcpy.Exists("county_lyr"):
     arcpy.Delete_management("county_lyr")
@@ -35,7 +35,7 @@ if arcpy.Exists("PLSS_lyr"):
 arcpy.MakeFeatureLayer_management(PLSS_pts, "PLSS_lyr")
 
 
-# Select all features within 5m of current St George FC
+# Select PLSS Points within the County
 arcpy.SelectLayerByLocation_management("PLSS_lyr", "INTERSECT", "county_lyr")
 
 PLSS_list = []
@@ -116,9 +116,9 @@ final_df = keep_df.apply(in_pdf_dict, axis=1)
 # sum up yes's for total count
 print(f"Number of matching PDFs (excluding meander points): {final_df.Keep.count()}")
 
-# Optionally export to csv if you need to explore the data
-path = r'C:\Users\eneemann\Desktop\final_df.csv'
-final_df.to_csv(path)
+## Optionally export to csv if you need to explore the data
+#path = r'C:\Users\eneemann\Desktop\final_df.csv'
+#final_df.to_csv(path)
 
 
 print("Script shutting down ...")
