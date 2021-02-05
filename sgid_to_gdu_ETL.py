@@ -18,8 +18,8 @@ today = time.strftime("%Y%m%d")
 
 SGID = r"C:\Users\eneemann\AppData\Roaming\ESRI\ArcGISPro\Favorites\internal@SGID@internal.agrc.utah.gov.sde"
 work_dir = r"C:\Users\eneemann\Desktop\Neemann\Google Geo Data Upload"
-working_db = r"C:\Users\eneemann\Desktop\Neemann\Google Geo Data Upload\SGID_dumps_20210130.gdb"
-# working_db = os.path.join(work_dir, f"SGID_dumps_{today}.gdb"
+# working_db = r"C:\Users\eneemann\Desktop\Neemann\Google Geo Data Upload\SGID_dumps_20210130.gdb"
+working_db = os.path.join(work_dir, f"SGID_dumps_{today}.gdb")
 sgid_roads = os.path.join(SGID, "SGID.TRANSPORTATION.Roads")
 sgid_addpts = os.path.join(SGID, "SGID.LOCATION.AddressPoints")
 working_roads = os.path.join(working_db, "Roads")
@@ -55,7 +55,7 @@ gdu_addpts = os.path.join(out_dir, "Utah_AddressPoints.shp")
 
 # arcpy.management.AddField(working_addpts, "STREET", "TEXT", "", "", 60)
 # arcpy.management.AddField(working_addpts, "APT_NUM", "TEXT", "", "", 20)
-arcpy.management.AddField(working_addpts, "G_CITY", "TEXT", "", "", 50)
+# arcpy.management.AddField(working_addpts, "G_CITY", "TEXT", "", "", 50)
 
 ###############
 #  Functions  #
@@ -80,10 +80,13 @@ def get_sgid_data():
     if not arcpy.Exists(working_db):
         print(f"Creating {working_db} ...")
         arcpy.management.CreateFileGDB(work_dir, f"SGID_dumps_{today}.gdb")
+    print("Copying roads from SGID ...")
     arcpy.management.CopyFeatures(sgid_roads, working_roads)
+    print("Copying address points from SGID ...")
     arcpy.management.CopyFeatures(sgid_addpts, working_addpts)
     
     # Add fields to working data
+    print("Adding fields to working feature classes ...")
     # Roads
     arcpy.management.AddField(working_roads, "STREET", "TEXT", "", "", 60)
     arcpy.management.AddField(working_roads, "ALIAS1", "TEXT", "", "", 60)
@@ -142,8 +145,10 @@ def build_roads(work_rd, gdu_rd):
     count = 0
     #             0         1          2        3         4             5
     fields = ['PREDIR', 'FULLNAME', 'STREET', 'CAR', 'VERT_LEVEL', 'ELEVATION',
-    #   6           7            8            9           10             11         12           13           14        15    
-    'AN_NAME', 'AN_POSTDIR', 'A1_PREDIR', 'A1_NAME', 'A1_POSTTYPE', 'A2_PREDIR', 'A2_NAME', 'A2_POSTTYPE', 'ALIAS1', 'ALIAS2' ]
+    #   6           7            8            9           10             11     
+    'AN_NAME', 'AN_POSTDIR', 'A1_PREDIR', 'A1_NAME', 'A1_POSTTYPE', 'A1_POSTDIR',
+    #   12           13           14            15          16        17          18
+    'A2_PREDIR', 'A2_NAME', 'A2_POSTTYPE', 'A2_POSTDIR', 'ALIAS1', 'ALIAS2', 'DOT_HWYNAM' ]
     with arcpy.da.UpdateCursor(work_rd, fields) as ucursor:
         print("Calculating Road fields ...")
         for row in ucursor:
@@ -159,17 +164,33 @@ def build_roads(work_rd, gdu_rd):
                 row[5] = 'Overpass'
             else:
                 row[5] = None
-                
+            
+            # If numeric alias, numeric is alias1    
             if row[6] is not None and row[6] not in ('', ' '):
-                row[14] = f'{row[0]} {row[6]} {row[7]}'
-                row[14] = row[14].strip().replace("  ", " ").replace("  ", " ").replace("  ", " ")
-                row[15] = f'{row[8]} {row[9]} {row[10]}'
-                row[15] = row[15].strip().replace("  ", " ").replace("  ", " ").replace("  ", " ")
+                row[16] = f'{row[0]} {row[6]} {row[7]}'
+                row[16] = ' '.join(row[16].split()).strip()
+                # If hwyname, hwyname is alias 2
+                if row[18] is not None and row[18] not in ('', ' '):
+                    row[17] = f'{row[0]} {row[18]}'
+                    row[17] = ' '.join(row[17].split()).strip()
+                # If no hwyname, a1 is alias 2
+                else:
+                    if row[9] is not None and row[9] not in ('', ' '):
+                        row[17] = f'{row[0]} {row[9]} {row[10]} {row[11]}'
+                        row[17] = ' '.join(row[17].split()).strip()
+            # If no numeric alias, a1 is alias1  
             else:
-                row[14] = f'{row[8]} {row[9]} {row[10]}'
-                row[14] = row[14].strip().replace("  ", " ").replace("  ", " ").replace("  ", " ")
-                row[15] = f'{row[11]} {row[12]} {row[13]}'
-                row[15] = row[15].strip().replace("  ", " ").replace("  ", " ").replace("  ", " ")
+                if row[9] is not None and row[9] not in ('', ' '):
+                    row[16] = f'{row[0]} {row[9]} {row[10]} {row[11]}'
+                    row[16] = ' '.join(row[16].split()).strip()
+                # If hwyname, hwyname is alias 2
+                if row[18] is not None and row[18] not in ('', ' '):
+                    row[17] = f'{row[0]} {row[18]}'
+                    row[17] = ' '.join(row[17].split()).strip()
+                else:
+                    if row[13] is not None and row[13] not in ('', ' '):
+                        row[17] = f'{row[0]} {row[13]} {row[14]} {row[15]}'
+                        row[17] = ' '.join(row[17].split()).strip()
         
             count += 1
             ucursor.updateRow(row)
@@ -262,9 +283,9 @@ def build_addpts(work_ap, gdu_ap):
 #  Call Functions Below  #
 ##########################
 build_files_folders()
-# get_sgid_data()
+get_sgid_data()
 # build_schemas(gdu_road_schema, gdu_addpt_schema)
-# build_roads(working_roads, gdu_roads)
+build_roads(working_roads, gdu_roads)
 build_addpts(working_addpts, gdu_addpts)
 
 
