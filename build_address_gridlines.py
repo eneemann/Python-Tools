@@ -1,10 +1,22 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu May 13 14:13:29 2021
-
 @author: eneemann
-
 EMN: Initial script to build address grid lines based on user input
+
+INPUTS
+Requires the following variables to be updated by the user before running the script:
+origin_x = 443966.8                 # x coordinate in meters from NAD 1983 UTM 12N (EPSG: 26912)
+origin_y = 4453905.6                # y coordinate in meters from NAD 1983 UTM 12N (EPSG: 26912)
+num_blocks = 60                     # number of blocks to build in each direction
+avg_block_distance['x'] = 147.7     # east-west average block distance in meters (SLC is 792 ft = 241.4 m)
+avg_block_distance['y'] = 147.7     # north-south average distance in meters (SLC is about 235 m)
+grid_name = 'Provo'                 # base name for the grid you're building
+work_dir = r"C:\Temp"               # location to store the file geodatabase
+
+OUTPUT
+A file geodatabase with a polyline feature class representing the address gridlines
+    
 """
 
 import arcpy
@@ -21,19 +33,19 @@ today = time.strftime("%Y%m%d")
 ######################
 #  Define Variables  #
 ######################
-avg_block_distance = {}     # initialize dictionary to hold x/y distances
-sr = arcpy.SpatialReference(26912)      # spatial reference
+avg_block_distance = {}             # initialize dictionary to hold x/y distances
+sr = arcpy.SpatialReference(26912)  # spatial reference
 
 # Enter grid parameters in NAD 1983 UTM 12N (EPSG: 26912), units as meters
-origin_x = 424796.3         # meters
-origin_y = 4513534.7        # meters
-num_blocks = 35
-avg_block_distance['x'] = 241.4     # east-west distance in meters (SLC is 792 ft = 241.4 m)
-avg_block_distance['y'] = 235       # north-south distance in meters (SLC is about 235 m)
+origin_x = 443966.8                 # x coordinate in meters from NAD 1983 UTM 12N (EPSG: 26912)
+origin_y = 4453905.6                # y coordinate in meters from NAD 1983 UTM 12N (EPSG: 26912)
+num_blocks = 60                     # number of blocks to build in each direction
+avg_block_distance['x'] = 147.7     # east-west average block distance in meters (SLC is 792 ft = 241.4 m)
+avg_block_distance['y'] = 147.7     # north-south average distance in meters (SLC is about 235 m)
 
-# Enter grid name and root directory
-grid_name = 'SLC'
-work_dir = r"C:\Temp"
+# Enter grid name and root directory to store file geodatabase
+grid_name = 'Provo'                 # base name for the grid you're building
+work_dir = r"C:\Temp"               # location to store the file geodatabase
 
 # Set database and feature class paths
 working_db = f"Address_Grid_{today}.gdb"
@@ -82,29 +94,15 @@ def build_center_axes(orig_x, orig_y, num, dist):
                             arcpy.Point(ax['EW_end_x'], ax['EW_end_y'])])
     EW_shape = arcpy.Polyline(EW_array, sr) 
     EW_values = ['E-W Axis', EW_shape]
-    
-    # # build north-south axis line
-    # NS_array = arcpy.Array([arcpy.Point(orig_x, orig_y - num*dist),
-    #                  arcpy.Point(orig_x, orig_y + num*dist)])
-    # NS_shape = arcpy.Polyline(NS_array, sr) 
-    # NS_values = ['N-S Axis', NS_shape]
-    
-    # # build east-west axis line
-    # EW_array = arcpy.Array([arcpy.Point(orig_x - num*dist, orig_y),
-    #                  arcpy.Point(orig_x + num*dist, orig_y)])
-    # EW_shape = arcpy.Polyline(EW_array, sr) 
-    # EW_values = ['E-W Axis', EW_shape]
-        
-    fields = ['Label', 'SHAPE@']
-    
+               
     # Add lines to FC
+    fields = ['Label', 'SHAPE@']
     print('Adding center axes to feature class ...')
     with arcpy.da.InsertCursor(out_path, fields) as insert_cursor:
         insert_cursor.insertRow(NS_values)
         insert_cursor.insertRow(EW_values)
         
     return ax
-        
         
 
 def build_N_S_line(ax, block, dist):
@@ -120,9 +118,8 @@ def build_N_S_line(ax, block, dist):
     W_shape = arcpy.Polyline(W_array, sr) 
     W_values = [f'{block*100} W', W_shape]
     
-    fields = ['Label', 'SHAPE@']
-    
     # Add lines to FC
+    fields = ['Label', 'SHAPE@']
     print('Adding north-south lines to feature class ...')
     with arcpy.da.InsertCursor(out_path, fields) as insert_cursor:
         insert_cursor.insertRow(E_values)
@@ -142,9 +139,8 @@ def build_E_W_line(ax, block, dist):
     S_shape = arcpy.Polyline(S_array, sr) 
     S_values = [f'{block*100} S', S_shape]
     
-    fields = ['Label', 'SHAPE@']
-    
     # Add lines to FC
+    fields = ['Label', 'SHAPE@']
     print('Adding east-west lines to feature class ...')
     with arcpy.da.InsertCursor(out_path, fields) as insert_cursor:
         insert_cursor.insertRow(N_values)
@@ -153,19 +149,19 @@ def build_E_W_line(ax, block, dist):
 ####################
 #  Call Functions  #
 ####################
-    
+
+# Build folders and get main axes
 build_files_folders()
 axes = build_center_axes(origin_x, origin_y, num_blocks, avg_block_distance)
 
+# Iterate over number of blocks and build out vertical and horizontal lines
 for i in np.arange(1, num_blocks +1):
     print(f'Working on iteration: {i}')
-    # build_N_S_line(axes, i, avg_block_distance)
-    # build_E_W_line(axes, i, avg_block_distance)
     build_N_S_line(axes, i, avg_block_distance['x'])
     build_E_W_line(axes, i, avg_block_distance['y'])
 
-print("Script shutting down ...")
 # Stop timer and print end time in UTC
+print("Script shutting down ...")
 readable_end = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
 print(f"The script end time is {readable_end}")
 print(f"Time elapsed: {time.time() - start_time:.2f}s")
