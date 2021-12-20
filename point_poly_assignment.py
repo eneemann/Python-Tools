@@ -26,15 +26,15 @@ print('The script start time is {}'.format(readable_start))
 # Update variables below
 database = r'C:\E911\StGeorgeDispatch_TEST\Pt_in_Poly_TEST.gdb'
 points = os.path.join(database, "AddressPoints_TEST")
-sgid_path = r'C:\Users\eneemann\AppData\Roaming\Esri\ArcGISPro\Favorites\sgid.agrc.utah.gov.sde'
+sgid_path = r'C:\Users\eneemann\AppData\Roaming\ESRI\ArcGISPro\Favorites\internal@SGID@internal.agrc.utah.gov.sde'
 
-add_path = os.path.join(sgid_path, 'SGID10.LOCATION.AddressSystemQuadrants')
+add_path = os.path.join(sgid_path, 'SGID.LOCATION.AddressSystemQuadrants')
 add_field = 'GRID_NAME'
-city_path = os.path.join(sgid_path, 'SGID10.BOUNDARIES.Municipalities')
+city_path = os.path.join(sgid_path, 'SGID.BOUNDARIES.Municipalities')
 city_field = 'SHORTDESC'
-zip_path = os.path.join(sgid_path, 'SGID10.BOUNDARIES.ZipCodes')
+zip_path = os.path.join(sgid_path, 'SGID.BOUNDARIES.ZipCodes')
 zip_field = 'ZIP5'
-USNG_path = os.path.join(sgid_path, 'SGID10.INDICES.NationalGrid')
+USNG_path = os.path.join(sgid_path, 'SGID.INDICES.NationalGrid')
 USNG_field = 'USNG'
 
 # create dictionary where key is name of field that needs updated in points layer
