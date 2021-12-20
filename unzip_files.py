@@ -17,7 +17,7 @@ print("The script start time is {}".format(readable_start))
 today = time.strftime("%Y%m%d")
 
 # Define variable
-data_dir = r"C:\Users\eneemann\Desktop\Bountiful Lidar"
+data_dir = r"C:\Users\eneemann\Desktop\Zion Lidar"
 
 # Define function
 def unzip_files(directory):

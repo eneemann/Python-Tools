@@ -37,14 +37,14 @@ avg_block_distance = {}             # initialize dictionary to hold x/y distance
 sr = arcpy.SpatialReference(26912)  # spatial reference
 
 # Enter grid parameters in NAD 1983 UTM 12N (EPSG: 26912), units as meters
-origin_x = 443966.8                 # x coordinate in meters from NAD 1983 UTM 12N (EPSG: 26912)
-origin_y = 4453905.6                # y coordinate in meters from NAD 1983 UTM 12N (EPSG: 26912)
-num_blocks = 60                     # number of blocks to build in each direction
-avg_block_distance['x'] = 147.7     # east-west average block distance in meters (SLC is 792 ft = 241.4 m)
-avg_block_distance['y'] = 147.7     # north-south average distance in meters (SLC is about 235 m)
+origin_x = 275162.7                # x coordinate in meters from NAD 1983 UTM 12N (EPSG: 26912)
+origin_y = 4171950              # y coordinate in meters from NAD 1983 UTM 12N (EPSG: 26912)
+num_blocks = 100                     # number of blocks to build in each direction
+avg_block_distance['x'] = 184.1     # east-west average block distance in meters (SLC is 792 ft = 241.4 m)
+avg_block_distance['y'] = 186.4    # north-south average distance in meters (SLC is about 235 m)
 
 # Enter grid name and root directory to store file geodatabase
-grid_name = 'Provo'                 # base name for the grid you're building
+grid_name = 'Newcastle'                 # base name for the grid you're building
 work_dir = r"C:\Temp"               # location to store the file geodatabase
 
 # Set database and feature class paths
