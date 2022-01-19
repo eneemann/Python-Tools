@@ -9,7 +9,6 @@ Script to identify and list curvepart features
 import arcpy
 import os
 import time
-import json
 
 # Start timer and print start time in UTC
 start_time = time.time()
@@ -33,9 +32,9 @@ def curve_check(fc):
     with arcpy.da.SearchCursor(fc, fields) as search_cursor:
         print("Looping through rows in FC to check for true curve features ...")
         for row in search_cursor:
-            json = row[1]
+            j = row[1]
             oid = row[0]
-            if 'curve' in json:
+            if 'curve' in j:
                 curve_oids.append(oid)
                 curve_count += 1
                 print(f'OID {oid} has a curve!')
@@ -52,14 +51,16 @@ def curve_check(fc):
 
 curve_check(FC)
 
-#2nd style of curve check from StackExchange: https://gis.stackexchange.com/questions/37793/identifying-true-curves-arcs-in-arcmap/179155#179155
-geometries = arcpy.CopyFeatures_management(FC, arcpy.Geometry())
-for g in geometries:
-    j = json.loads(g.JSON)
-    if 'curve' in j:
-        print("You have true curves!")
-    else:
-        print("No curves here")
+# 2nd version of curve check from StackExchange: https://gis.stackexchange.com/questions/37793/identifying-true-curves-arcs-in-arcmap/179155#179155
+# This version doesn't apper to work
+# import json
+# geometries = arcpy.CopyFeatures_management(FC, arcpy.Geometry())
+# for g in geometries:
+#     j = json.loads(g.JSON)
+#     if 'curve' in j:
+#         print("You have true curves!")
+#     else:
+#         print("No curves here")
 
 
 print("Script shutting down ...")
