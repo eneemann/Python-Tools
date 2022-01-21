@@ -20,7 +20,7 @@ print("The script start time is {}".format(readable_start))
 ######################
 
 today = time.strftime("%Y%m%d")
-db = r"L:\agrc\data\ng911\Submitted_to_911DM\UtahNG911GIS_20220106.gdb"
+db = r"L:\agrc\data\ng911\Submitted_to_911DM\UtahNG911GIS_20220118.gdb"
 FC = os.path.join(db, r'PSAP_Boundaries')
 arcpy.env.workspace = db
 
@@ -28,6 +28,7 @@ arcpy.env.workspace = db
 def curve_check(fc):
     curve_count = 0
     curve_oids = []
+    print('Checking for curves using the SHAPE@JSON token ...')
     fields = ['OID@', 'SHAPE@JSON']
     with arcpy.da.SearchCursor(fc, fields) as search_cursor:
         print("Looping through rows in FC to check for true curve features ...")
@@ -62,6 +63,17 @@ curve_check(FC)
 #     else:
 #         print("No curves here")
 
+# 3rd version of curve check using geometries and the hasCurves property
+print('Checking for curves from geometry hasCurves property ...')
+curve_count_g = 0
+geometries = arcpy.CopyFeatures_management(FC, arcpy.Geometry())
+for g in geometries:
+    if g.hasCurves:
+        print("You have true curves!")
+    else:
+        print("No curves here")
+
+print(f'Total count of curve features: {curve_count_g}')
 
 print("Script shutting down ...")
 # Stop timer and print end time in UTC
