@@ -20,8 +20,8 @@ print("The script start time is {}".format(readable_start))
 ######################
 
 today = time.strftime("%Y%m%d")
-db = r"L:\agrc\data\ng911\Working Folder\NG911_working_database.gdb"
-FC = os.path.join(db, r'PSAP_Boundaries')
+db = r"L:\agrc\FromTheCounties\CacheCoVotingPrecincts\Cache_precincts_2022_3rd.gdb"
+FC = os.path.join(db, r'Vista\Cache_precincts_3rd_20220120')
 arcpy.env.workspace = db
 
 
