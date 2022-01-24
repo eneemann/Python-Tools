@@ -20,7 +20,7 @@ print("The script start time is {}".format(readable_start))
 ######################
 
 today = time.strftime("%Y%m%d")
-db = r"L:\agrc\data\ng911\Submitted_to_911DM\UtahNG911GIS_20220118.gdb"
+db = r"L:\agrc\data\ng911\Submitted_to_911DM\UtahNG911GIS_20220106.gdb"
 FC = os.path.join(db, r'PSAP_Boundaries')
 arcpy.env.workspace = db
 
@@ -39,11 +39,16 @@ def curve_check(fc):
                 curve_oids.append(oid)
                 curve_count += 1
                 print(f'OID {oid} has a curve!')
-                
+                # print(j["curveRings"][0][0])
+                # print(j.split("curveRings:"))
+                # print(j['{"curveRings"}][0][0])
+                # print(j)
+                print(j.split(']')[0])
     print(f'Total count of curve features: {curve_count}')
-    print('curve OIDs:')
-    for o in curve_oids:
-        print(o)
+    if len(curve_oids) > 0:
+        print('curve OIDs:')
+        for o in curve_oids:
+            print(o)
             
 
 ##########################
@@ -69,9 +74,10 @@ curve_count_g = 0
 geometries = arcpy.CopyFeatures_management(FC, arcpy.Geometry())
 for g in geometries:
     if g.hasCurves:
-        print("You have true curves!")
-    else:
-        print("No curves here")
+        curve_count_g += 1
+        print("Feature with a true curve found!")
+    # else:
+    #     print("No curves here")
 
 print(f'Total count of curve features: {curve_count_g}')
 
