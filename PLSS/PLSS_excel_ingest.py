@@ -50,11 +50,11 @@ def dms2dd(dms):
     print(dms)
     # convert direction characters to - signs
     if 'N' in dms:
-        dms.replace('N', '').strip()
+        dms = dms.replace('N', '').strip()
     elif 'S' in dms:
         dms = '-' + dms.replace('S', '').strip()
     elif 'E' in dms:
-        dms.replace('E', '').strip()
+        dms = dms.replace('E', '').strip()
     elif 'W' in dms:
         dms = '-' + dms.replace('W', '').strip()
         
