@@ -20,8 +20,8 @@ print("The script start time is {}".format(readable_start))
 ######################
 
 today = time.strftime("%Y%m%d")
-db = r"L:\agrc\FromTheCounties\Emery_Co\Emery_precincts_2022.gdb"
-FC = os.path.join(db, r'Vista\Emery_vista_20211216')
+db = r"L:\agrc\FromTheCounties\CacheCoVotingPrecincts\Cache_precincts_2022_3rd.gdb"
+FC = os.path.join(db, r'Vista\Cache_precincts_3rd_20220120')
 arcpy.env.workspace = db
 
 
@@ -57,4 +57,3 @@ print("Script shutting down ...")
 readable_end = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
 print("The script end time is {}".format(readable_end))
 print("Time elapsed: {:.2f}s".format(time.time() - start_time))
-    
