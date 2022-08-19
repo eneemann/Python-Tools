@@ -20,8 +20,19 @@ print("The script start time is {}".format(readable_start))
 ######################
 
 today = time.strftime("%Y%m%d")
-db = r"L:\agrc\data\ng911\Submitted_to_911DM\UtahNG911GIS_20220106.gdb"
-FC = os.path.join(db, r'PSAP_Boundaries')
+#db = r"L:\agrc\data\ng911\Submitted_to_911DM\UtahNG911GIS_20220106.gdb"
+#db = r"\\itwfpcap2\AGRC\agrc\data\ng911\SpatialStation_live_data\UtahNG911GIS.gdb"
+db = r'C:\Users\eneemann\Desktop\Neemann\NG911\NG911_project\C:\Users\eneemann\Desktop\Neemann\NG911\NG911_project\NG911_project.gdb'
+#db = r"C:\Users\eneemann\Desktop\Neemann\NG911\NG911_project\NG911_data_updates.gdb"
+#db = r"C:\Users\eneemann\AppData\Roaming\ESRI\ArcGISPro\Favorites\internal@SGID@internal.agrc.utah.gov.sde"
+
+#FC = os.path.join(db, r'Fire')
+#FC = os.path.join(db, r'PSAP_euclid_outside_only')
+FC = os.path.join(db, r'EMS_Boundaries\NG911_Fire_bounds_20220407')
+
+FC = r'C:\Users\eneemann\Desktop\Neemann\NG911\NG911_project\0 NG911_Fire_Shapefile_20220705\NG911_Fire_bounds_20220705.shp'
+
+print(f"Working on: {FC}")
 arcpy.env.workspace = db
 
 

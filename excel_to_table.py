@@ -16,10 +16,10 @@ start_time = time.time()
 readable_start = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
 print("The script start time is {}".format(readable_start))
 
-staging_db = r"C:\E911\StGeorgeDispatch\StGeorge_Staging.gdb"
+staging_db = r"C:\E911\Box Elder CO\BoxElder_Staging.gdb"
 env.workspace = staging_db
-excel = r"C:\E911\StGeorgeDispatch\St George Common Place updates_20211117.xlsx"
-out_table = os.path.join(staging_db, 'CP_update_20211117')
+excel = r"C:\E911\Box Elder CO\BECC Common Place updates_20220406.xlsx"
+out_table = os.path.join(staging_db, 'BECC_CPs_20220406')
 
 
 arcpy.conversion.ExcelToTable(excel, out_table)

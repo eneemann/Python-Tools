@@ -20,18 +20,19 @@ start_time = time.time()
 readable_start = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
 print("The script start time is {}".format(readable_start))
 
-near_df = pd.read_csv(r'C:\E911\Beaver Co\Addpts_working_folder\beaver_neartable_test.csv')
-edit_df = pd.read_csv(r'C:\E911\Beaver Co\Addpts_working_folder\beaver_neartable_test_edit.csv')
+one_df = pd.read_csv(r"C:\Users\eneemann\Desktop\Neemann\NG911\0 Fire PDFs and Tables\Utah_FDID_Jun2022.csv")
+two_df = pd.read_csv(r"C:\Users\eneemann\Desktop\Neemann\NG911\0 Fire PDFs and Tables\USFA_FDID_Jun2022.csv")
 
 diff = []
-for x in np.arange(near_df.shape[0]):
-    if str(near_df.iloc[x,:]) == str(edit_df.iloc[x,:]):
+for x in np.arange(one_df.shape[0]):
+    if str(one_df.iloc[x,:]) == str(two_df.iloc[x,:]):
         diff.append('same')
     else:
         diff.append('different')
         
 diff_df = pd.DataFrame({'Diff': diff})
-diff_df.to_csv(r'C:\E911\Beaver Co\Addpts_working_folder\beaver_neartable_test_diff.csv')
+diff_df.head()
+#diff_df.to_csv(r'C:\Users\eneemann\Desktop\Neemann\NG911\0 Fire PDFs and Tables\FDID_diff.csv')
 
 print("Script shutting down ...")
 # Stop timer and print end time in UTC

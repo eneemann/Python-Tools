@@ -20,8 +20,8 @@ print("The script start time is {}".format(readable_start))
 ######################
 
 today = time.strftime("%Y%m%d")
-db = r"L:\agrc\FromTheCounties\CacheCoVotingPrecincts\Cache_precincts_2022_3rd.gdb"
-FC = os.path.join(db, r'Vista\Cache_precincts_3rd_20220120')
+db = r"C:\Users\eneemann\Desktop\Neemann\Vista\Political_Snapping_20220202.gdb"
+FC = os.path.join(db, r'Topo_checks\VistaBallotAreas_Proposed_update_20220202_1')
 arcpy.env.workspace = db
 
 
