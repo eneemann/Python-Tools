@@ -27,17 +27,20 @@ today = time.strftime("%Y%m%d_%H%M%S", t)
 #db = r"\\itwfpcap2\AGRC\agrc\data\ng911\SpatialStation_live_data\UtahNG911GIS.gdb"
 #db = r'C:\Users\eneemann\Desktop\Neemann\NG911\NG911_project\NG911_project.gdb\EMS_Boundaries'
 #db = r'C:\Users\eneemann\Desktop\Neemann\NG911\NG911_project\NG911_project.gdb'
-db = r'C:\Users\eneemann\Desktop\Neemann\NG911\NG911_project\NG911_data_updates.gdb'
+# db = r'C:\Users\eneemann\Desktop\Neemann\NG911\NG911_project\NG911_data_updates.gdb'
 #db = r"C:\Users\eneemann\AppData\Roaming\ESRI\ArcGISPro\Favorites\internal@SGID@internal.agrc.utah.gov.sde"
+db = r'C:\Users\eneemann\Documents\ArcGIS\Projects\DABC\DABC.gdb'
+
 
 #FC = os.path.join(db, r'EMS_import_from_shapefile_20220211')
 #FC = os.path.join(db, r'NG911_Fire_bounds_20220411')
-FC = os.path.join(db, r'PSAP_euclid_outside_only')
+# FC = os.path.join(db, r'PSAP_euclid_outside_only')
 #FC = os.path.join(db, r'SGID.BOUNDARIES.Municipalities')
 #FC = os.path.join(db, r'a_Law_import_from_shapefile_20220216')
+FC = os.path.join(db, r'Utah_StateWideParcel')
 
 #FC = r'C:\Users\eneemann\Desktop\Neemann\NG911\NG911_project\0 NG911_Law_Shapefile_20220216\UT_Law_WGS84_20220216.shp'
-FC = r'C:\Users\eneemann\Desktop\Neemann\NG911\NG911_project\0 NG911_Fire_Shapefile_20220705\NG911_Fire_bounds_20220705.shp'
+# FC = r'C:\Users\eneemann\Desktop\Neemann\NG911\NG911_project\0 NG911_Fire_Shapefile_20220705\NG911_Fire_bounds_20220705.shp'
 
 print(f"Working on: {FC}")
 arcpy.env.workspace = db

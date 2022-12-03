@@ -18,8 +18,8 @@ print("The script start time is {}".format(readable_start))
 
 staging_db = r"C:\E911\Box Elder CO\BoxElder_Staging.gdb"
 env.workspace = staging_db
-excel = r"C:\E911\Box Elder CO\BECC Common Place updates_20220406.xlsx"
-out_table = os.path.join(staging_db, 'BECC_CPs_20220406')
+excel = r"C:\E911\Box Elder CO\BECC Common Place updates_20221003.xlsx"
+out_table = os.path.join(staging_db, 'BECC_CPs_20221003')
 
 
 arcpy.conversion.ExcelToTable(excel, out_table)
