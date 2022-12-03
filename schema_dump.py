@@ -17,11 +17,11 @@ print("The script start time is {}".format(readable_start))
 today = time.strftime("%Y%m%d")
 
 # Point to desired geodatabases and feature classes
-geo_db = r"C:\E911\Layton\LaytonGeoValidation_updates.gdb"
+geo_db = r"C:\E911\Layton\LaytonGeoValidation_updates_20220826.gdb"
 county_db = r"C:\E911\Layton\DavisCoDispatchData_working.gdb"
 
-layton = os.path.join(geo_db, "PointsOfInterest")
-county = os.path.join(county_db, "CommonPlacePoints")
+TOC = os.path.join(geo_db, "LaytonStreets_orig_schema")
+county = os.path.join(county_db, "RoadCenterlines")
 
 
 #classic_db = r'C:\E911\Layton\QuickestRoute.gdb\QuickestRouteWGS_September13'
@@ -35,15 +35,15 @@ county = os.path.join(county_db, "CommonPlacePoints")
 #NG911 = r"C:\Users\eneemann\Desktop\Neemann\NG911\NG911_project\NG911_boundary_work_testing.gdb"
 #ng911 = os.path.join(NG911, 'NG911_psap_bound_final_sgid_20210616')
 
-layton_fields = arcpy.ListFields(layton)
-print('Layton Field Info:')
-for f in layton_fields:
+toc_fields = arcpy.ListFields(TOC)
+print('TOC Field Info:')
+for f in toc_fields:
     print(f'Field Name: {f.name}     Field Type: {f.type}     Field Length: {f.length}')
     
-county_fields = arcpy.ListFields(county)
-print('County Field Info:')
-for f in county_fields:
-    print(f'Field Name: {f.name}     Field Type: {f.type}     Field Length: {f.length}')
+# county_fields = arcpy.ListFields(county)
+# print('County Field Info:')
+# for f in county_fields:
+#     print(f'Field Name: {f.name}     Field Type: {f.type}     Field Length: {f.length}')
     
 #QR_streets_fields = arcpy.ListFields(QR_streets)
 #print('QR streets Field Info:')

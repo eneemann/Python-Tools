@@ -16,14 +16,14 @@ start_time = time.time()
 readable_start = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
 print("The script start time is {}".format(readable_start))
 
-in_db = r"C:\E911\WeberArea\Staging103\Weber_Staging.gdb"
-in_fc = os.path.join(in_db, 'SGID_munis_export_20220804')
+in_db = r"C:\E911\Layton\Layton_staging.gdb"
+in_fc = os.path.join(in_db, 'Davis_streets_build_20221021')
 
-out_db = r"C:\E911\WeberArea\Staging103\WeberSGB.gdb"
-out_fc = os.path.join(out_db, 'Municipalities')
+out_db = in_db
+out_fc = os.path.join(out_db, 'aaa_test_back_to_UTM_12')
 
 print(f"Projecting {in_fc} ...")
-sr = arcpy.SpatialReference("WGS 1984")
+sr = arcpy.SpatialReference(26912)
 arcpy.management.Project(in_fc, out_fc, sr, "WGS_1984_(ITRF00)_To_NAD_1983")
 
 
