@@ -6,14 +6,10 @@ Script to compare two CSV tables for differences
 
 """
 
-import arcpy
-from arcpy import env
-import os
 import time
 import pandas as pd
 import numpy as np
-from Levenshtein import StringMatcher as Lv
-from matplotlib import pyplot as plt
+
 
 # Start timer and print start time in UTC
 start_time = time.time()
