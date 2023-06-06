@@ -11,7 +11,7 @@ import arcpy
 import os
 import time
 
-# Start timer and print start time in UTC
+# Start timer and print start time
 start_time = time.time()
 readable_start = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 print("The script start time is {}".format(readable_start))
@@ -23,7 +23,7 @@ mrrc_pts = os.path.join(mrrc_db, 'PLSSPoint_MRRC_updates')
 
 # Calculate new fields
 # First, get list of pdfs from MRRC folder on G Drive
-pdf_dir = r"G:\Shared drives\AGRC Projects\PLSS\MRRC Tie Sheets 2016-2022\Erik_temp"
+pdf_dir = r"M:\Shared drives\AGRC Projects\PLSS\MRRC Tie Sheets 2016-2022\Erik_temp"
 os.chdir(pdf_dir)
 
 filenumber = 0
@@ -52,7 +52,7 @@ print(f"Total count of MRRC updates to points: {update_count}")
 
 
 print("Script shutting down ...")
-# Stop timer and print end time in UTC
+# Stop timer and print end time
 readable_end = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 print("The script end time is {}".format(readable_end))
 print("Time elapsed: {:.2f}s".format(time.time() - start_time))
