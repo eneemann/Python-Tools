@@ -10,6 +10,7 @@ in the point layer for the PLSS Web App.
 import arcpy
 import os
 import time
+import shutil
 
 # Start timer and print start time
 start_time = time.time()
@@ -34,7 +35,7 @@ total = len(dir_list)
 for filename in dir_list:
     pdf_dict.setdefault(filename.split('.pdf')[0])
 
-# Caculate fields based on PDFs in MRRC folder
+# Calculate fields based on PDFs in MRRC folder
 print("Calculating MRRC fields ...")
 update_count = 0
 fields = ['point_id', 'mrrc', 'monument', 'point_category']
