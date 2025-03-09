@@ -40,6 +40,9 @@ for filename in dir_list:
 # Calculate fields based on PDFs in MRRC folder
 print("Calculating MRRC fields ...")
 update_count = 0
+already_mrrc = 0
+already_monument = 0
+
 fields = ['point_id', 'mrrc', 'monument', 'point_category']
 with arcpy.da.UpdateCursor(mrrc_pts, fields) as cursor:
     for row in cursor:
@@ -52,6 +55,10 @@ with arcpy.da.UpdateCursor(mrrc_pts, fields) as cursor:
            row[1] = None
         
         cursor.updateRow(row)
+
+
+print(f"Total count of points already showing 'mrrc': {already_mrrc}")
+print(f"Total count of points already showing 'monument': {already_monument}")
 print(f"Total count of MRRC updates to points: {update_count}")
 
 
