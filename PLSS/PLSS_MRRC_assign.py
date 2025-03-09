@@ -46,7 +46,9 @@ already_monument = 0
 fields = ['point_id', 'mrrc', 'monument', 'point_category']
 with arcpy.da.UpdateCursor(mrrc_pts, fields) as cursor:
     for row in cursor:
-        if row[0] in pdf_dict:
+        # check for point_id as substring in pdf_dict filenames (keys)
+        point_id_check = {key for key in pdf_dict.keys() if row[0] in key}
+        if len(point_id_check) > 0:
             # update mrrc field
             if row[1] is not None and row[1] == 1:
                 already_mrrc += 1
