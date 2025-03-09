@@ -18,12 +18,13 @@ print("The script start time is {}".format(readable_start))
 today = time.strftime("%Y%m%d")
 
 # Set up variables
-mrrc_db = r'C:\Users\eneemann\Desktop\PLSS_Points.gdb'
-mrrc_pts = os.path.join(mrrc_db, 'PLSSPoint_MRRC_updates')
+mrrc_db = r'C:\GIS Data\PLSS\PLSS_update_20250307.gdb'
+mrrc_pts = os.path.join(mrrc_db, 'PLSS_Monuments_MRRC_updates')
 
 # Calculate new fields
 # First, get list of pdfs from MRRC folder on G Drive
-pdf_dir = r"M:\Shared drives\AGRC Projects\PLSS\MRRC Tie Sheets 2016-2022\Erik_temp"
+# pdf_dir = r"M:\Shared drives\AGRC Projects\PLSS\MRRC Tie Sheets 2016-2022\Erik_temp"
+pdf_dir = r"M:\Shared drives\UGRC Projects\PLSS\Megafolder (ready to be processed)"
 os.chdir(pdf_dir)
 
 filenumber = 0
