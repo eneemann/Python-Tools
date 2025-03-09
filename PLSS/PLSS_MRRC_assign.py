@@ -32,8 +32,10 @@ filenumber = 0
 dir_list = os.listdir(pdf_dir)
 pdf_dict = {}
 total = len(dir_list)
+
 for filename in dir_list:
-    pdf_dict.setdefault(filename.split('.pdf')[0])
+    basename = filename.split('.pdf')[0]
+    pdf_dict.setdefault(basename)
 
 # Calculate fields based on PDFs in MRRC folder
 print("Calculating MRRC fields ...")
